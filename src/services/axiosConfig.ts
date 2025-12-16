@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.CONTRATOS_API_URL 
+const API_URL = import.meta.env.VITE_CONTRATOS_API_URL;
+
 const axiosInstance = axios.create({
   baseURL: API_URL,
   headers: {
@@ -18,6 +19,24 @@ axiosInstance.interceptors.request.use(
     return config;
   },
   (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Interceptor para manejar errores de autenticación
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token inválido o expirado
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      // Redirigir al login si no estamos ya en esa página
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+    }
     return Promise.reject(error);
   }
 );

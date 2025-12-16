@@ -1,78 +1,80 @@
-import { Box, Heading, SimpleGrid, Text } from '@chakra-ui/react';
+import { Box, Heading, SimpleGrid, Text, VStack } from '@chakra-ui/react';
 import { Link } from 'react-router-dom';
 
 const Home = () => {
   return (
-    <Box textAlign="center" py={8}>
-      <Heading as="h1" size="2xl" mb={4}>
-        Sistema de Gestión de Contratos
-      </Heading>
-      <Text fontSize="xl" color="gray.600" mb={12}>
-        Administra personas, inmuebles y contratos de forma simple
-      </Text>
+    <VStack spacing={8} py={8}>
+      <Box textAlign="center">
+        <Heading size="lg" mb={2} color="white">
+          Sistema de Contratos
+        </Heading>
+        <Text color="gray.400" fontSize="sm">
+          Gestión simple de personas, inmuebles y contratos
+        </Text>
+      </Box>
 
-      <SimpleGrid columns={{ base: 1, md: 3 }} gap={8}>
+      <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4} w="full">
         <Link to="/personas" style={{ textDecoration: 'none' }}>
           <Box
-            p={8}
-            border="2px"
-            borderColor="gray.200"
-            borderRadius="lg"
-            transition="all 0.3s"
-            _hover={{
-              borderColor: 'blue.400',
-              transform: 'translateY(-5px)',
-              shadow: 'lg',
-            }}
+            p={6}
+            bg="gray.800"
+            borderRadius="md"
+            border="1px"
+            borderColor="gray.700"
+            transition="all 0.2s"
+            _hover={{ borderColor: 'blue.500', bg: 'gray.750' }}
+            textAlign="center"
           >
-            <Heading as="h2" size="lg" mb={2}>
+            <Heading size="md" mb={2} color="white">
               Personas
             </Heading>
-            <Text color="gray.600">Gestiona personas físicas y jurídicas</Text>
+            <Text color="gray.400" fontSize="sm">
+              Gestionar personas
+            </Text>
           </Box>
         </Link>
 
         <Link to="/inmuebles" style={{ textDecoration: 'none' }}>
           <Box
-            p={8}
-            border="2px"
-            borderColor="gray.200"
-            borderRadius="lg"
-            transition="all 0.3s"
-            _hover={{
-              borderColor: 'blue.400',
-              transform: 'translateY(-5px)',
-              shadow: 'lg',
-            }}
+            p={6}
+            bg="gray.800"
+            borderRadius="md"
+            border="1px"
+            borderColor="gray.700"
+            transition="all 0.2s"
+            _hover={{ borderColor: 'blue.500', bg: 'gray.750' }}
+            textAlign="center"
           >
-            <Heading as="h2" size="lg" mb={2}>
+            <Heading size="md" mb={2} color="white">
               Inmuebles
             </Heading>
-            <Text color="gray.600">Administra casas y campos</Text>
+            <Text color="gray.400" fontSize="sm">
+              Administrar inmuebles
+            </Text>
           </Box>
         </Link>
 
         <Link to="/contratos" style={{ textDecoration: 'none' }}>
           <Box
-            p={8}
-            border="2px"
-            borderColor="gray.200"
-            borderRadius="lg"
-            transition="all 0.3s"
-            _hover={{
-              borderColor: 'blue.400',
-              transform: 'translateY(-5px)',
-              shadow: 'lg',
-            }}
+            p={6}
+            bg="gray.800"
+            borderRadius="md"
+            border="1px"
+            borderColor="gray.700"
+            transition="all 0.2s"
+            _hover={{ borderColor: 'blue.500', bg: 'gray.750' }}
+            textAlign="center"
           >
-            <Heading as="h2" size="lg" mb={2}>
+            <Heading size="md" mb={2} color="white">
               Contratos
             </Heading>
-            <Text color="gray.600">Registra y controla contratos</Text>
+            <Text color="gray.400" fontSize="sm">
+              Registrar contratos
+            </Text>
           </Box>
         </Link>
       </SimpleGrid>
-    </Box>
+    </VStack>
   );
 };
 
