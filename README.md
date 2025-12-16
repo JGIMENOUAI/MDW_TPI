@@ -1,4 +1,4 @@
-# 🏠 Sistema de Gestión de Contratos - Frontend
+# Sistema de Contratos - Frontend
 
 ## 🔗 Links Relacionados
 
