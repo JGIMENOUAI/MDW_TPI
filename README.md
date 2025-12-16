@@ -1,73 +1,82 @@
-# React + TypeScript + Vite
+# 🏠 Sistema de Gestión de Contratos - Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend minimalista desarrollado con **React + TypeScript + Vite** para la gestión de contratos, personas e inmuebles.
 
-Currently, two official plugins are available:
+## 🔗 Links Relacionados
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Backend:** [backend-contratos](https://github.com/maos1111/backend-contratos)
 
-## React Compiler
+## 🚀 Tecnologías
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **React 19** - Biblioteca de UI
+- **TypeScript** - Tipado estático
+- **Vite** - Build tool y dev server
+- **Axios** - Cliente HTTP
+- **React Router** - Navegación
 
-## Expanding the ESLint configuration
+## 📦 Instalación
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+```bash
+# Instalar dependencias
+npm install
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Configurar variables de entorno
+cp .env.example .env
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## ⚙️ Configuración
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Edita el archivo `.env` con la URL de tu backend:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```env
+VITE_API_URL=http://localhost:3000/api
 ```
+
+## 🏃‍♂️ Ejecutar en Desarrollo
+
+```bash
+npm run dev
+```
+
+El frontend estará disponible en `http://localhost:5173`
+
+## 🏗️ Build para Producción
+
+```bash
+npm run build
+npm run preview
+```
+
+## 📁 Estructura del Proyecto
+
+```
+src/
+├── components/     # Componentes reutilizables (Layout, Navbar)
+├── pages/          # Páginas de la aplicación (Home, CRUD)
+├── services/       # Servicios API (axios config, CRUD services)
+├── types/          # Definiciones de TypeScript
+├── App.tsx         # Componente principal
+└── main.tsx        # Punto de entrada
+```
+
+## 🎯 Funcionalidades
+
+- ✅ CRUD de Personas (físicas y jurídicas)
+- ✅ CRUD de Inmuebles (casas y campos)
+- ✅ CRUD de Contratos
+- ✅ Navegación con React Router
+- ✅ Validación de formularios
+- ✅ Interfaz minimalista y responsive
+
+## 🔧 Scripts Disponibles
+
+```bash
+npm run dev      # Servidor de desarrollo
+npm run build    # Build para producción
+npm run preview  # Preview del build
+npm run lint     # Linter
+```
+
+---
+
+**Desarrollado con ❤️ para MDW - UAI**
