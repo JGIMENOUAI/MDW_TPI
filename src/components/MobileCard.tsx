@@ -1,5 +1,5 @@
 import { Box, VStack } from "@chakra-ui/react";
-import { ReactNode } from "react";
+import { type ReactNode } from "react";
 import { CARD_STYLES } from "../styles/constants";
 
 interface MobileCardProps {
