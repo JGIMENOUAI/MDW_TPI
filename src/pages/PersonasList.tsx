@@ -149,7 +149,7 @@ const PersonasList = () => {
           <Link to={`/personas/editar/${row._id}`}>
             <Button
               size="sm"
-              colorScheme="yellow"
+              colorScheme="blue"
               minH="38px"
               leftIcon={<EditIcon />}
             >
@@ -163,6 +163,7 @@ const PersonasList = () => {
             }}
             size="sm"
             colorScheme="orange"
+            variant="outline"
             minH="38px"
           >
             Desactivar
@@ -174,6 +175,7 @@ const PersonasList = () => {
             }}
             size="sm"
             colorScheme="red"
+            variant="solid"
             minH="38px"
             leftIcon={<DeleteIcon />}
           >
@@ -273,7 +275,7 @@ const PersonasList = () => {
                   <Link to={`/personas/editar/${persona._id}`}>
                     <Button
                       size="md"
-                      colorScheme="yellow"
+                      colorScheme="blue"
                       w="full"
                       minH="48px"
                       leftIcon={<EditIcon />}
@@ -285,6 +287,7 @@ const PersonasList = () => {
                     onClick={() => handleDesactivar(persona._id!)}
                     size="md"
                     colorScheme="orange"
+                    variant="outline"
                     w="full"
                     minH="48px"
                   >
@@ -294,6 +297,7 @@ const PersonasList = () => {
                     onClick={() => handleDelete(persona._id!)}
                     size="md"
                     colorScheme="red"
+                    variant="solid"
                     w="full"
                     minH="48px"
                     leftIcon={<DeleteIcon />}

@@ -5,7 +5,6 @@ const config: ThemeConfig = {
   useSystemColorMode: false,
 };
 
-// Design tokens - valores consistentes
 const tokens = {
   radii: {
     card: "xl", // 12px - para cards y containers
@@ -40,7 +39,7 @@ const theme = extendTheme({
   },
   colors: {
     gray: {
-      750: "#2D3748", // Color intermedio para hovers
+      750: "#2D3748",
     },
   },
   components: {
@@ -134,8 +133,31 @@ const theme = extendTheme({
           px: 4,
         },
       },
+      variants: {
+        secondary: {
+          bg: "gray.700",
+          color: "white",
+          _hover: {
+            bg: "gray.600",
+          },
+          _active: {
+            bg: "gray.500",
+          },
+        },
+
+        ghost: {
+          color: "gray.300",
+          _hover: {
+            bg: "gray.700",
+            color: "white",
+          },
+          _active: {
+            bg: "gray.600",
+          },
+        },
+      },
     },
-    // Estilos globales para Card/Container
+
     Card: {
       baseStyle: {
         container: {

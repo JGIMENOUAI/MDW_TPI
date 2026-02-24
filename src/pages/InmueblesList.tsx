@@ -148,7 +148,7 @@ const InmueblesList = () => {
           <Link to={`/inmuebles/editar/${row._id}`}>
             <Button
               size="sm"
-              colorScheme="yellow"
+              colorScheme="blue"
               minH="38px"
               leftIcon={<EditIcon />}
             >
@@ -162,6 +162,7 @@ const InmueblesList = () => {
             }}
             size="sm"
             colorScheme="orange"
+            variant="outline"
             minH="38px"
           >
             Desactivar
@@ -173,6 +174,7 @@ const InmueblesList = () => {
             }}
             size="sm"
             colorScheme="red"
+            variant="solid"
             minH="38px"
             leftIcon={<DeleteIcon />}
           >
@@ -266,7 +268,7 @@ const InmueblesList = () => {
                   <Link to={`/inmuebles/editar/${inmueble._id}`}>
                     <Button
                       size="md"
-                      colorScheme="yellow"
+                      colorScheme="blue"
                       w="full"
                       minH="48px"
                       leftIcon={<EditIcon />}
@@ -278,6 +280,7 @@ const InmueblesList = () => {
                     onClick={() => handleDesactivar(inmueble._id!)}
                     size="md"
                     colorScheme="orange"
+                    variant="outline"
                     w="full"
                     minH="48px"
                   >
@@ -287,6 +290,7 @@ const InmueblesList = () => {
                     onClick={() => handleDelete(inmueble._id!)}
                     size="md"
                     colorScheme="red"
+                    variant="solid"
                     w="full"
                     minH="48px"
                     leftIcon={<DeleteIcon />}

@@ -58,8 +58,7 @@ export const ConfirmDialog = ({
               ref={cancelRef}
               onClick={onClose}
               minH="44px"
-              variant="ghost"
-              _hover={{ bg: "gray.700" }}
+              variant="secondary"
             >
               {cancelLabel}
             </Button>

@@ -155,7 +155,7 @@ const PersonaForm = () => {
               <Button
                 onClick={() => navigate("/personas")}
                 flex={1}
-                variant="outline"
+                variant="secondary"
               >
                 Cancelar
               </Button>

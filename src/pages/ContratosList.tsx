@@ -140,7 +140,7 @@ const ContratosList = () => {
           <Link to={`/contratos/editar/${contrato._id}`}>
             <Button
               size="sm"
-              colorScheme="yellow"
+              colorScheme="blue"
               minH="38px"
               leftIcon={<EditIcon />}
             >
@@ -151,6 +151,7 @@ const ContratosList = () => {
             onClick={() => handleDelete(contrato._id!)}
             size="sm"
             colorScheme="red"
+            variant="solid"
             minH="38px"
             leftIcon={<DeleteIcon />}
           >
@@ -268,7 +269,7 @@ const ContratosList = () => {
                     <Link to={`/contratos/editar/${contrato._id}`}>
                       <Button
                         size="md"
-                        colorScheme="yellow"
+                        colorScheme="blue"
                         w="full"
                         minH="48px"
                         leftIcon={<EditIcon />}
@@ -280,6 +281,7 @@ const ContratosList = () => {
                       onClick={() => handleDelete(contrato._id!)}
                       size="md"
                       colorScheme="red"
+                      variant="solid"
                       w="full"
                       minH="48px"
                       leftIcon={<DeleteIcon />}
