@@ -7,29 +7,38 @@ import {
   FormLabel,
   Heading,
   Input,
-  VStack
-} from '@chakra-ui/react';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+  Link as ChakraLink,
+  Text,
+  VStack,
+} from "@chakra-ui/react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
+    if (!email || !password) {
+      setError("Por favor complete todos los campos");
+      setLoading(false);
+      return;
+    }
+
     try {
-      await login(email);
-      navigate('/');
+      await login(email, password);
+      navigate("/");
     } catch (err: any) {
-      setError(err.response?.data?.mensaje || 'Error al iniciar sesión');
+      setError(err.response?.data?.mensaje || "Error al iniciar sesión");
       console.error(err);
     } finally {
       setLoading(false);
@@ -43,7 +52,13 @@ const Login = () => {
       </Heading>
 
       {error && (
-        <Alert status="error" mb={4} bg="red.900" color="white" borderRadius="md">
+        <Alert
+          status="error"
+          mb={4}
+          bg="red.900"
+          color="white"
+          borderRadius="md"
+        >
           <AlertIcon />
           {error}
         </Alert>
@@ -68,9 +83,30 @@ const Login = () => {
               bg="gray.900"
               borderColor="gray.600"
               color="white"
-              _hover={{ borderColor: 'gray.500' }}
-              _focus={{ borderColor: 'blue.500', boxShadow: '0 0 0 1px #3182CE' }}
+              _hover={{ borderColor: "gray.500" }}
+              _focus={{
+                borderColor: "blue.500",
+                boxShadow: "0 0 0 1px #3182CE",
+              }}
               placeholder="correo@ejemplo.com"
+            />
+          </FormControl>
+
+          <FormControl isRequired>
+            <FormLabel color="gray.300">Contraseña</FormLabel>
+            <Input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              bg="gray.900"
+              borderColor="gray.600"
+              color="white"
+              _hover={{ borderColor: "gray.500" }}
+              _focus={{
+                borderColor: "blue.500",
+                boxShadow: "0 0 0 1px #3182CE",
+              }}
+              placeholder="••••••••"
             />
           </FormControl>
 
@@ -86,8 +122,18 @@ const Login = () => {
         </VStack>
       </Box>
 
-      <Box textAlign="center" mt={4} color="gray.400" fontSize="sm">
-        Sistema de autenticación con Firebase
+      <Box textAlign="center" mt={4}>
+        <Text color="gray.400" fontSize="sm">
+          ¿No tienes cuenta?{" "}
+          <ChakraLink
+            as={Link}
+            to="/registro"
+            color="blue.400"
+            _hover={{ color: "blue.300" }}
+          >
+            Regístrate
+          </ChakraLink>
+        </Text>
       </Box>
     </Box>
   );
