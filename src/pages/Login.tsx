@@ -4,6 +4,7 @@ import {
   Box,
   Button,
   FormControl,
+  FormErrorMessage,
   FormLabel,
   Heading,
   Input,
@@ -11,38 +12,41 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { joiResolver } from "@hookform/resolvers/joi";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAppDispatch, useAppSelector } from "../app/hooks";
+import { clearError, loginUser } from "../features/auth/authSlice";
+import { loginSchema, type LoginFormData } from "../schemas/authSchema";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const dispatch = useAppDispatch();
+  const { loading, error, isAuthenticated } = useAppSelector(
+    (state) => state.auth,
+  );
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: joiResolver(loginSchema),
+  });
 
-    if (!email || !password) {
-      setError("Por favor complete todos los campos");
-      setLoading(false);
-      return;
-    }
+  useEffect(() => {
+    dispatch(clearError());
+  }, [dispatch]);
 
-    try {
-      await login(email, password);
+  useEffect(() => {
+    if (isAuthenticated) {
       navigate("/dashboard");
-    } catch (err: any) {
-      setError(err.response?.data?.mensaje || "Error al iniciar sesión");
-      console.error(err);
-    } finally {
-      setLoading(false);
     }
+  }, [isAuthenticated, navigate]);
+
+  const onSubmit = (data: LoginFormData) => {
+    dispatch(loginUser(data));
   };
 
   return (
@@ -66,7 +70,7 @@ const Login = () => {
 
       <Box
         as="form"
-        onSubmit={handleSubmit}
+        onSubmit={handleSubmit(onSubmit)}
         bg="gray.800"
         p={6}
         borderRadius="md"
@@ -74,12 +78,11 @@ const Login = () => {
         borderColor="gray.700"
       >
         <VStack spacing={4} align="stretch">
-          <FormControl isRequired>
+          <FormControl isRequired isInvalid={!!errors.email}>
             <FormLabel color="gray.300">Email</FormLabel>
             <Input
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              {...register("email")}
               bg="gray.900"
               borderColor="gray.600"
               color="white"
@@ -90,14 +93,16 @@ const Login = () => {
               }}
               placeholder="correo@ejemplo.com"
             />
+            {errors.email && (
+              <FormErrorMessage>{errors.email.message}</FormErrorMessage>
+            )}
           </FormControl>
 
-          <FormControl isRequired>
+          <FormControl isRequired isInvalid={!!errors.password}>
             <FormLabel color="gray.300">Contraseña</FormLabel>
             <Input
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              {...register("password")}
               bg="gray.900"
               borderColor="gray.600"
               color="white"
@@ -108,6 +113,9 @@ const Login = () => {
               }}
               placeholder="••••••••"
             />
+            {errors.password && (
+              <FormErrorMessage>{errors.password.message}</FormErrorMessage>
+            )}
           </FormControl>
 
           <Button

@@ -4,6 +4,7 @@ import {
   Box,
   Button,
   FormControl,
+  FormErrorMessage,
   FormLabel,
   Heading,
   Input,
@@ -14,12 +15,18 @@ import {
   Stack,
   VStack,
 } from "@chakra-ui/react";
+import { joiResolver } from "@hookform/resolvers/joi";
 import { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { contratoService } from "../services/contratoService";
 import { inmuebleService } from "../services/inmuebleService";
 import { personaService } from "../services/personaService";
-import type { Contrato, Inmueble, Persona } from "../types";
+import {
+  contratoSchema,
+  type ContratoFormData,
+} from "../schemas/contratoSchema";
+import type { Inmueble, Persona } from "../types";
 
 const ContratoForm = () => {
   const navigate = useNavigate();
@@ -29,14 +36,24 @@ const ContratoForm = () => {
   const [error, setError] = useState<string | null>(null);
   const [personas, setPersonas] = useState<Persona[]>([]);
   const [inmuebles, setInmuebles] = useState<Inmueble[]>([]);
-  const [formData, setFormData] = useState<Omit<Contrato, "_id">>({
-    tipoContrato: "alquiler",
-    locador: "",
-    locatario: "",
-    inmueble: "",
-    fechaInicio: "",
-    fechaFin: "",
-    monto: 0,
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    control,
+    formState: { errors },
+  } = useForm<ContratoFormData>({
+    resolver: joiResolver(contratoSchema),
+    defaultValues: {
+      tipoContrato: "alquiler",
+      locador: "",
+      locatario: "",
+      inmueble: "",
+      fechaInicio: "",
+      fechaFin: "",
+      monto: 0,
+    },
   });
 
   useEffect(() => {
@@ -59,9 +76,10 @@ const ContratoForm = () => {
       setPersonas(personasData);
       setInmuebles(inmueblesData);
       setError(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { mensaje?: string } } };
       const errorMessage =
-        err.response?.data?.mensaje || "Error al cargar los datos";
+        error.response?.data?.mensaje || "Error al cargar los datos";
       setError(errorMessage);
       console.error(err);
     } finally {
@@ -72,62 +90,58 @@ const ContratoForm = () => {
   const loadContrato = async () => {
     try {
       const data = await contratoService.getById(id!);
-      setFormData({
-        tipoContrato: data.tipoContrato,
-        locador:
-          typeof data.locador === "string"
-            ? data.locador
-            : data.locador?._id || "",
-        locatario:
-          typeof data.locatario === "string"
-            ? data.locatario
-            : data.locatario?._id || "",
-        inmueble:
-          typeof data.inmueble === "string"
-            ? data.inmueble
-            : data.inmueble?._id || "",
-        fechaInicio: data.fechaInicio.split("T")[0],
-        fechaFin: data.fechaFin ? data.fechaFin.split("T")[0] : "",
-        monto: data.monto,
-      });
+      setValue("tipoContrato", data.tipoContrato);
+      setValue(
+        "locador",
+        typeof data.locador === "string"
+          ? data.locador
+          : data.locador?._id || "",
+      );
+      setValue(
+        "locatario",
+        typeof data.locatario === "string"
+          ? data.locatario
+          : data.locatario?._id || "",
+      );
+      setValue(
+        "inmueble",
+        typeof data.inmueble === "string"
+          ? data.inmueble
+          : data.inmueble?._id || "",
+      );
+      setValue("fechaInicio", data.fechaInicio.split("T")[0]);
+      setValue("fechaFin", data.fechaFin ? data.fechaFin.split("T")[0] : "");
+      setValue("monto", data.monto);
       setError(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { mensaje?: string } } };
       const errorMessage =
-        err.response?.data?.mensaje || "Error al cargar el contrato";
+        error.response?.data?.mensaje || "Error al cargar el contrato";
       setError(errorMessage);
       console.error(err);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: ContratoFormData) => {
     setLoading(true);
     setError(null);
 
     try {
       if (id) {
-        await contratoService.update(id, formData);
+        await contratoService.update(id, data);
       } else {
-        await contratoService.create(formData);
+        await contratoService.create(data);
       }
       navigate("/contratos");
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { mensaje?: string } } };
       const errorMessage =
-        err.response?.data?.mensaje || "Error al guardar el contrato";
+        error.response?.data?.mensaje || "Error al guardar el contrato";
       setError(errorMessage);
       console.error(err);
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
   };
 
   if (loadingData)
@@ -158,7 +172,7 @@ const ContratoForm = () => {
 
       <Box
         as="form"
-        onSubmit={handleSubmit}
+        onSubmit={handleSubmit(onSubmit)}
         bg="gray.800"
         p={{ base: 4, md: 6 }}
         borderRadius="md"
@@ -166,12 +180,10 @@ const ContratoForm = () => {
         borderColor="gray.700"
       >
         <VStack spacing={4} align="stretch">
-          <FormControl isRequired>
+          <FormControl isRequired isInvalid={!!errors.tipoContrato}>
             <FormLabel color="gray.300">Tipo de Contrato</FormLabel>
             <Select
-              name="tipoContrato"
-              value={formData.tipoContrato}
-              onChange={handleChange}
+              {...register("tipoContrato")}
               bg="gray.900"
               borderColor="gray.600"
               color="white"
@@ -187,14 +199,15 @@ const ContratoForm = () => {
                 Comodato
               </option>
             </Select>
+            {errors.tipoContrato && (
+              <FormErrorMessage>{errors.tipoContrato.message}</FormErrorMessage>
+            )}
           </FormControl>
 
-          <FormControl isRequired>
+          <FormControl isRequired isInvalid={!!errors.locador}>
             <FormLabel color="gray.300">Locador</FormLabel>
             <Select
-              name="locador"
-              value={formData.locador}
-              onChange={handleChange}
+              {...register("locador")}
               bg="gray.900"
               borderColor="gray.600"
               color="white"
@@ -213,14 +226,15 @@ const ContratoForm = () => {
                 </option>
               ))}
             </Select>
+            {errors.locador && (
+              <FormErrorMessage>{errors.locador.message}</FormErrorMessage>
+            )}
           </FormControl>
 
-          <FormControl isRequired>
+          <FormControl isRequired isInvalid={!!errors.locatario}>
             <FormLabel color="gray.300">Locatario</FormLabel>
             <Select
-              name="locatario"
-              value={formData.locatario}
-              onChange={handleChange}
+              {...register("locatario")}
               bg="gray.900"
               borderColor="gray.600"
               color="white"
@@ -239,14 +253,15 @@ const ContratoForm = () => {
                 </option>
               ))}
             </Select>
+            {errors.locatario && (
+              <FormErrorMessage>{errors.locatario.message}</FormErrorMessage>
+            )}
           </FormControl>
 
-          <FormControl isRequired>
+          <FormControl isRequired isInvalid={!!errors.inmueble}>
             <FormLabel color="gray.300">Inmueble</FormLabel>
             <Select
-              name="inmueble"
-              value={formData.inmueble}
-              onChange={handleChange}
+              {...register("inmueble")}
               bg="gray.900"
               borderColor="gray.600"
               color="white"
@@ -265,16 +280,17 @@ const ContratoForm = () => {
                 </option>
               ))}
             </Select>
+            {errors.inmueble && (
+              <FormErrorMessage>{errors.inmueble.message}</FormErrorMessage>
+            )}
           </FormControl>
 
           <Stack direction={{ base: "column", md: "row" }} spacing={4}>
-            <FormControl isRequired flex={1}>
+            <FormControl isRequired flex={1} isInvalid={!!errors.fechaInicio}>
               <FormLabel color="gray.300">Fecha de Inicio</FormLabel>
               <Input
                 type="date"
-                name="fechaInicio"
-                value={formData.fechaInicio}
-                onChange={handleChange}
+                {...register("fechaInicio")}
                 bg="gray.900"
                 borderColor="gray.600"
                 color="white"
@@ -284,15 +300,18 @@ const ContratoForm = () => {
                   boxShadow: "0 0 0 1px #3182CE",
                 }}
               />
+              {errors.fechaInicio && (
+                <FormErrorMessage>
+                  {errors.fechaInicio.message}
+                </FormErrorMessage>
+              )}
             </FormControl>
 
-            <FormControl flex={1}>
-              <FormLabel color="gray.300">Fecha de Fin</FormLabel>
+            <FormControl flex={1} isInvalid={!!errors.fechaFin}>
+              <FormLabel color="gray.300">Fecha de Fin (opcional)</FormLabel>
               <Input
                 type="date"
-                name="fechaFin"
-                value={formData.fechaFin}
-                onChange={handleChange}
+                {...register("fechaFin")}
                 bg="gray.900"
                 borderColor="gray.600"
                 color="white"
@@ -302,32 +321,41 @@ const ContratoForm = () => {
                   boxShadow: "0 0 0 1px #3182CE",
                 }}
               />
+              {errors.fechaFin && (
+                <FormErrorMessage>{errors.fechaFin.message}</FormErrorMessage>
+              )}
             </FormControl>
           </Stack>
 
-          <FormControl isRequired>
+          <FormControl isRequired isInvalid={!!errors.monto}>
             <FormLabel color="gray.300">Monto</FormLabel>
-            <NumberInput
-              min={0}
-              value={formData.monto}
-              onChange={(valueString) =>
-                setFormData({
-                  ...formData,
-                  monto: parseFloat(valueString) || 0,
-                })
-              }
-            >
-              <NumberInputField
-                bg="gray.900"
-                borderColor="gray.600"
-                color="white"
-                _hover={{ borderColor: "gray.500" }}
-                _focus={{
-                  borderColor: "blue.500",
-                  boxShadow: "0 0 0 1px #3182CE",
-                }}
-              />
-            </NumberInput>
+            <Controller
+              name="monto"
+              control={control}
+              render={({ field: { onChange, value } }) => (
+                <NumberInput
+                  min={0}
+                  value={value}
+                  onChange={(valueString) =>
+                    onChange(parseFloat(valueString) || 0)
+                  }
+                >
+                  <NumberInputField
+                    bg="gray.900"
+                    borderColor="gray.600"
+                    color="white"
+                    _hover={{ borderColor: "gray.500" }}
+                    _focus={{
+                      borderColor: "blue.500",
+                      boxShadow: "0 0 0 1px #3182CE",
+                    }}
+                  />
+                </NumberInput>
+              )}
+            />
+            {errors.monto && (
+              <FormErrorMessage>{errors.monto.message}</FormErrorMessage>
+            )}
           </FormControl>
 
           <Stack direction={{ base: "column", sm: "row" }} spacing={4} pt={4}>

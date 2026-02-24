@@ -3,7 +3,6 @@ import {
   AlertIcon,
   Badge,
   Box,
-  Button,
   Heading,
   Spinner,
   Stack,
@@ -36,8 +35,9 @@ const PublicContratos = () => {
       setContratos(data);
       setError(null);
     } catch (err: unknown) {
+      const error = err as { response?: { data?: { mensaje?: string } } };
       const errorMessage =
-        (err as any).response?.data?.mensaje || "Error al cargar los contratos";
+        error.response?.data?.mensaje || "Error al cargar los contratos";
       setError(errorMessage);
       console.error(err);
     } finally {
@@ -95,11 +95,6 @@ const PublicContratos = () => {
             Visualización pública de contratos registrados
           </Text>
         </Box>
-        <Link to="/login">
-          <Button colorScheme="blue" w={{ base: "full", md: "auto" }}>
-            Iniciar Sesión
-          </Button>
-        </Link>
       </Stack>
 
       <Box
@@ -123,6 +118,9 @@ const PublicContratos = () => {
               </Th>
               <Th color="gray.400" display={{ base: "none", lg: "table-cell" }}>
                 Inicio
+              </Th>
+              <Th color="gray.400" display={{ base: "none", lg: "table-cell" }}>
+                Fin
               </Th>
             </Tr>
           </Thead>
@@ -164,6 +162,12 @@ const PublicContratos = () => {
                   display={{ base: "none", lg: "table-cell" }}
                 >
                   {formatDate(contrato.fechaInicio)}
+                </Td>
+                <Td
+                  color="gray.300"
+                  display={{ base: "none", lg: "table-cell" }}
+                >
+                  {formatDate(contrato.fechaFin)}
                 </Td>
               </Tr>
             ))}

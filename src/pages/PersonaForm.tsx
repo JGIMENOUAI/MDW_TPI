@@ -1,32 +1,45 @@
 import {
-    Alert,
-    AlertIcon,
-    Box,
-    Button,
-    FormControl,
-    FormLabel,
-    Heading,
-    Input,
-    Select,
-    Stack,
-    VStack,
-} from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { personaService } from '../services/personaService';
-import type { Persona } from '../types';
+  Alert,
+  AlertIcon,
+  Box,
+  Button,
+  FormControl,
+  FormErrorMessage,
+  FormLabel,
+  Heading,
+  Input,
+  Select,
+  Stack,
+  VStack,
+} from "@chakra-ui/react";
+import { joiResolver } from "@hookform/resolvers/joi";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useNavigate, useParams } from "react-router-dom";
+import { personaService } from "../services/personaService";
+import { personaSchema, type PersonaFormData } from "../schemas/personaSchema";
 
 const PersonaForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState<Omit<Persona, '_id'>>({
-    tipoPersona: 'fisica',
-    nombreCompleto: '',
-    documento: '',
-    email: '',
-    telefono: '',
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<PersonaFormData>({
+    resolver: joiResolver(personaSchema),
+    defaultValues: {
+      tipoPersona: "fisica",
+      nombreCompleto: "",
+      documento: "",
+      email: "",
+      telefono: "",
+      activo: true,
+    },
   });
 
   useEffect(() => {
@@ -38,35 +51,36 @@ const PersonaForm = () => {
   const loadPersona = async () => {
     try {
       const data = await personaService.getById(id!);
-      setFormData({
-        tipoPersona: data.tipoPersona,
-        nombreCompleto: data.nombreCompleto,
-        documento: data.documento,
-        email: data.email,
-        telefono: data.telefono,
-      });
+      setValue("tipoPersona", data.tipoPersona);
+      setValue("nombreCompleto", data.nombreCompleto);
+      setValue("documento", data.documento);
+      setValue("email", data.email);
+      setValue("telefono", data.telefono);
       setError(null);
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.mensaje || 'Error al cargar la persona';
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { mensaje?: string } } };
+      const errorMessage =
+        error.response?.data?.mensaje || "Error al cargar la persona";
       setError(errorMessage);
       console.error(err);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: PersonaFormData) => {
     setLoading(true);
     setError(null);
 
     try {
       if (id) {
-        await personaService.update(id, formData);
+        await personaService.update(id, data);
       } else {
-        await personaService.create(formData);
+        await personaService.create(data);
       }
-      navigate('/personas');
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.mensaje || 'Error al guardar la persona';
+      navigate("/personas");
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { mensaje?: string } } };
+      const errorMessage =
+        error.response?.data?.mensaje || "Error al guardar la persona";
       setError(errorMessage);
       console.error(err);
     } finally {
@@ -74,19 +88,20 @@ const PersonaForm = () => {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
   return (
     <Box>
-      <Heading mb={6} size="lg" color="white">{id ? 'Editar Persona' : 'Nueva Persona'}</Heading>
+      <Heading mb={6} size="lg" color="white">
+        {id ? "Editar Persona" : "Nueva Persona"}
+      </Heading>
 
       {error && (
-        <Alert status="error" mb={4} bg="red.900" color="white" borderRadius="md">
+        <Alert
+          status="error"
+          mb={4}
+          bg="red.900"
+          color="white"
+          borderRadius="md"
+        >
           <AlertIcon />
           {error}
         </Alert>
@@ -94,7 +109,7 @@ const PersonaForm = () => {
 
       <Box
         as="form"
-        onSubmit={handleSubmit}
+        onSubmit={handleSubmit(onSubmit)}
         bg="gray.800"
         p={{ base: 4, md: 6 }}
         borderRadius="md"
@@ -102,86 +117,109 @@ const PersonaForm = () => {
         borderColor="gray.700"
       >
         <VStack spacing={4} align="stretch">
-          <FormControl isRequired>
+          <FormControl isRequired isInvalid={!!errors.tipoPersona}>
             <FormLabel color="gray.300">Tipo de Persona</FormLabel>
             <Select
-              name="tipoPersona"
-              value={formData.tipoPersona}
-              onChange={handleChange}
+              {...register("tipoPersona")}
               bg="gray.900"
               borderColor="gray.600"
               color="white"
-              _hover={{ borderColor: 'gray.500' }}
+              _hover={{ borderColor: "gray.500" }}
             >
-              <option value="fisica" style={{ background: '#1A202C' }}>Física</option>
-              <option value="juridica" style={{ background: '#1A202C' }}>Jurídica</option>
+              <option value="fisica" style={{ background: "#1A202C" }}>
+                Física
+              </option>
+              <option value="juridica" style={{ background: "#1A202C" }}>
+                Jurídica
+              </option>
             </Select>
+            {errors.tipoPersona && (
+              <FormErrorMessage>{errors.tipoPersona.message}</FormErrorMessage>
+            )}
           </FormControl>
 
-          <FormControl isRequired>
+          <FormControl isRequired isInvalid={!!errors.nombreCompleto}>
             <FormLabel color="gray.300">Nombre Completo</FormLabel>
             <Input
-              name="nombreCompleto"
-              value={formData.nombreCompleto}
-              onChange={handleChange}
+              {...register("nombreCompleto")}
               bg="gray.900"
               borderColor="gray.600"
               color="white"
-              _hover={{ borderColor: 'gray.500' }}
-              _focus={{ borderColor: 'blue.500', boxShadow: '0 0 0 1px #3182CE' }}
+              _hover={{ borderColor: "gray.500" }}
+              _focus={{
+                borderColor: "blue.500",
+                boxShadow: "0 0 0 1px #3182CE",
+              }}
             />
+            {errors.nombreCompleto && (
+              <FormErrorMessage>
+                {errors.nombreCompleto.message}
+              </FormErrorMessage>
+            )}
           </FormControl>
 
-          <FormControl isRequired>
+          <FormControl isRequired isInvalid={!!errors.documento}>
             <FormLabel color="gray.300">Documento</FormLabel>
             <Input
-              name="documento"
-              value={formData.documento}
-              onChange={handleChange}
+              {...register("documento")}
               bg="gray.900"
               borderColor="gray.600"
               color="white"
-              _hover={{ borderColor: 'gray.500' }}
-              _focus={{ borderColor: 'blue.500', boxShadow: '0 0 0 1px #3182CE' }}
+              _hover={{ borderColor: "gray.500" }}
+              _focus={{
+                borderColor: "blue.500",
+                boxShadow: "0 0 0 1px #3182CE",
+              }}
             />
+            {errors.documento && (
+              <FormErrorMessage>{errors.documento.message}</FormErrorMessage>
+            )}
           </FormControl>
 
-          <FormControl isRequired>
+          <FormControl isRequired isInvalid={!!errors.email}>
             <FormLabel color="gray.300">Email</FormLabel>
             <Input
               type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
+              {...register("email")}
               bg="gray.900"
               borderColor="gray.600"
               color="white"
-              _hover={{ borderColor: 'gray.500' }}
-              _focus={{ borderColor: 'blue.500', boxShadow: '0 0 0 1px #3182CE' }}
+              _hover={{ borderColor: "gray.500" }}
+              _focus={{
+                borderColor: "blue.500",
+                boxShadow: "0 0 0 1px #3182CE",
+              }}
             />
+            {errors.email && (
+              <FormErrorMessage>{errors.email.message}</FormErrorMessage>
+            )}
           </FormControl>
 
-          <FormControl isRequired>
+          <FormControl isRequired isInvalid={!!errors.telefono}>
             <FormLabel color="gray.300">Teléfono</FormLabel>
             <Input
-              name="telefono"
-              value={formData.telefono}
-              onChange={handleChange}
+              {...register("telefono")}
               bg="gray.900"
               borderColor="gray.600"
               color="white"
-              _hover={{ borderColor: 'gray.500' }}
-              _focus={{ borderColor: 'blue.500', boxShadow: '0 0 0 1px #3182CE' }}
+              _hover={{ borderColor: "gray.500" }}
+              _focus={{
+                borderColor: "blue.500",
+                boxShadow: "0 0 0 1px #3182CE",
+              }}
             />
+            {errors.telefono && (
+              <FormErrorMessage>{errors.telefono.message}</FormErrorMessage>
+            )}
           </FormControl>
 
-          <Stack direction={{ base: 'column', sm: 'row' }} spacing={4} pt={4}>
+          <Stack direction={{ base: "column", sm: "row" }} spacing={4} pt={4}>
             <Button
-              onClick={() => navigate('/personas')}
+              onClick={() => navigate("/personas")}
               flex={1}
               bg="gray.700"
               color="white"
-              _hover={{ bg: 'gray.600' }}
+              _hover={{ bg: "gray.600" }}
             >
               Cancelar
             </Button>

@@ -1,13 +1,15 @@
 import { Box, Button, Flex, HStack, Text } from "@chakra-ui/react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAppDispatch, useAppSelector } from "../app/hooks";
+import { logoutUser } from "../features/auth/authSlice";
 
 const Navbar = () => {
-  const { isAuthenticated, logout, user } = useAuth();
+  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout();
+    dispatch(logoutUser());
     navigate("/");
   };
 

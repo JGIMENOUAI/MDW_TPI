@@ -4,6 +4,7 @@ import {
   Box,
   Button,
   FormControl,
+  FormErrorMessage,
   FormLabel,
   Heading,
   Input,
@@ -11,78 +12,54 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { joiResolver } from "@hookform/resolvers/joi";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import { authService } from "../services/authService";
+import { useAppDispatch, useAppSelector } from "../app/hooks";
+import { clearError, registerUser } from "../features/auth/authSlice";
+import { registerSchema, type RegisterFormData } from "../schemas/authSchema";
 
 const Register = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const dispatch = useAppDispatch();
+  const { loading, error, isAuthenticated } = useAppSelector(
+    (state) => state.auth,
+  );
   const [success, setSuccess] = useState(false);
-  const [formData, setFormData] = useState({
-    nombre: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterFormData>({
+    resolver: joiResolver(registerSchema),
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setSuccess(false);
+  useEffect(() => {
+    dispatch(clearError());
+  }, [dispatch]);
 
-    // Validaciones
-    if (
-      !formData.nombre ||
-      !formData.email ||
-      !formData.password ||
-      !formData.confirmPassword
-    ) {
-      setError("Por favor complete todos los campos");
-      setLoading(false);
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      setError("Las contraseñas no coinciden");
-      setLoading(false);
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      await authService.register({
-        nombre: formData.nombre,
-        email: formData.email,
-        password: formData.password,
-      });
-
-      setSuccess(true);
-
-      // Redirigir a login después de 2 segundos
+  useEffect(() => {
+    if (isAuthenticated && success) {
       setTimeout(() => {
-        navigate("/login");
-      }, 2000);
-    } catch (err: any) {
-      setError(err.response?.data?.mensaje || "Error al crear la cuenta");
-      console.error(err);
-    } finally {
-      setLoading(false);
+        navigate("/dashboard");
+      }, 1000);
     }
-  };
+  }, [isAuthenticated, success, navigate]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+  const onSubmit = async (data: RegisterFormData) => {
+    const result = await dispatch(
+      registerUser({
+        nombre: data.nombre,
+        email: data.email,
+        password: data.password,
+      }),
+    );
+
+    if (registerUser.fulfilled.match(result)) {
+      setSuccess(true);
+    }
   };
 
   return (
@@ -91,7 +68,7 @@ const Register = () => {
         Crear Cuenta
       </Heading>
 
-      {error && (
+      {(error || Object.keys(errors).length > 0) && (
         <Alert
           status="error"
           mb={4}
@@ -100,7 +77,9 @@ const Register = () => {
           borderRadius="md"
         >
           <AlertIcon />
-          {error}
+          {error ||
+            Object.values(errors)[0]?.message ||
+            "Por favor corrija los errores"}
         </Alert>
       )}
 
@@ -119,7 +98,7 @@ const Register = () => {
 
       <Box
         as="form"
-        onSubmit={handleSubmit}
+        onSubmit={handleSubmit(onSubmit)}
         bg="gray.800"
         p={6}
         borderRadius="md"
@@ -127,12 +106,10 @@ const Register = () => {
         borderColor="gray.700"
       >
         <VStack spacing={4} align="stretch">
-          <FormControl isRequired>
+          <FormControl isRequired isInvalid={!!errors.nombre}>
             <FormLabel color="gray.300">Nombre</FormLabel>
             <Input
-              name="nombre"
-              value={formData.nombre}
-              onChange={handleChange}
+              {...register("nombre")}
               bg="gray.900"
               borderColor="gray.600"
               color="white"
@@ -143,15 +120,16 @@ const Register = () => {
               }}
               placeholder="Tu nombre completo"
             />
+            {errors.nombre && (
+              <FormErrorMessage>{errors.nombre.message}</FormErrorMessage>
+            )}
           </FormControl>
 
-          <FormControl isRequired>
+          <FormControl isRequired isInvalid={!!errors.email}>
             <FormLabel color="gray.300">Email</FormLabel>
             <Input
               type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
+              {...register("email")}
               bg="gray.900"
               borderColor="gray.600"
               color="white"
@@ -162,15 +140,16 @@ const Register = () => {
               }}
               placeholder="correo@ejemplo.com"
             />
+            {errors.email && (
+              <FormErrorMessage>{errors.email.message}</FormErrorMessage>
+            )}
           </FormControl>
 
-          <FormControl isRequired>
+          <FormControl isRequired isInvalid={!!errors.password}>
             <FormLabel color="gray.300">Contraseña</FormLabel>
             <Input
               type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
+              {...register("password")}
               bg="gray.900"
               borderColor="gray.600"
               color="white"
@@ -181,15 +160,16 @@ const Register = () => {
               }}
               placeholder="Mínimo 6 caracteres"
             />
+            {errors.password && (
+              <FormErrorMessage>{errors.password.message}</FormErrorMessage>
+            )}
           </FormControl>
 
-          <FormControl isRequired>
+          <FormControl isRequired isInvalid={!!errors.confirmPassword}>
             <FormLabel color="gray.300">Confirmar Contraseña</FormLabel>
             <Input
               type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
+              {...register("confirmPassword")}
               bg="gray.900"
               borderColor="gray.600"
               color="white"
@@ -200,6 +180,11 @@ const Register = () => {
               }}
               placeholder="Repite tu contraseña"
             />
+            {errors.confirmPassword && (
+              <FormErrorMessage>
+                {errors.confirmPassword.message}
+              </FormErrorMessage>
+            )}
           </FormControl>
 
           <Button

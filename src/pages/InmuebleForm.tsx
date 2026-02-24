@@ -4,6 +4,7 @@ import {
   Box,
   Button,
   FormControl,
+  FormErrorMessage,
   FormLabel,
   Heading,
   Input,
@@ -14,20 +15,37 @@ import {
   Textarea,
   VStack,
 } from "@chakra-ui/react";
+import { joiResolver } from "@hookform/resolvers/joi";
 import { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { inmuebleService } from "../services/inmuebleService";
-import type { Inmueble } from "../types";
+import {
+  inmuebleSchema,
+  type InmuebleFormData,
+} from "../schemas/inmuebleSchema";
 
 const InmuebleForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState<Omit<Inmueble, "_id">>({
-    tipo: "casa",
-    descripcion: "",
-    ubicacion: "",
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    control,
+    formState: { errors },
+  } = useForm<InmuebleFormData>({
+    resolver: joiResolver(inmuebleSchema),
+    defaultValues: {
+      tipo: "casa",
+      descripcion: "",
+      ubicacion: "",
+      hectareas: undefined,
+      activo: true,
+    },
   });
 
   useEffect(() => {
@@ -39,52 +57,42 @@ const InmuebleForm = () => {
   const loadInmueble = async () => {
     try {
       const data = await inmuebleService.getById(id!);
-      setFormData({
-        tipo: data.tipo,
-        descripcion: data.descripcion,
-        ubicacion: data.ubicacion,
-        ...(data.hectareas !== undefined && { hectareas: data.hectareas }),
-      });
+      setValue("tipo", data.tipo);
+      setValue("descripcion", data.descripcion);
+      setValue("ubicacion", data.ubicacion);
+      if (data.hectareas !== undefined) {
+        setValue("hectareas", data.hectareas);
+      }
       setError(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { mensaje?: string } } };
       const errorMessage =
-        err.response?.data?.mensaje || "Error al cargar el inmueble";
+        error.response?.data?.mensaje || "Error al cargar el inmueble";
       setError(errorMessage);
       console.error(err);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: InmuebleFormData) => {
     setLoading(true);
     setError(null);
 
     try {
       if (id) {
-        await inmuebleService.update(id, formData);
+        await inmuebleService.update(id, data);
       } else {
-        await inmuebleService.create(formData);
+        await inmuebleService.create(data);
       }
       navigate("/inmuebles");
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { mensaje?: string } } };
       const errorMessage =
-        err.response?.data?.mensaje || "Error al guardar el inmueble";
+        error.response?.data?.mensaje || "Error al guardar el inmueble";
       setError(errorMessage);
       console.error(err);
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >,
-  ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
   };
 
   return (
@@ -108,7 +116,7 @@ const InmuebleForm = () => {
 
       <Box
         as="form"
-        onSubmit={handleSubmit}
+        onSubmit={handleSubmit(onSubmit)}
         bg="gray.800"
         p={{ base: 4, md: 6 }}
         borderRadius="md"
@@ -116,12 +124,10 @@ const InmuebleForm = () => {
         borderColor="gray.700"
       >
         <VStack spacing={4} align="stretch">
-          <FormControl isRequired>
+          <FormControl isRequired isInvalid={!!errors.tipo}>
             <FormLabel color="gray.300">Tipo</FormLabel>
             <Select
-              name="tipo"
-              value={formData.tipo}
-              onChange={handleChange}
+              {...register("tipo")}
               bg="gray.900"
               borderColor="gray.600"
               color="white"
@@ -134,14 +140,15 @@ const InmuebleForm = () => {
                 Campo
               </option>
             </Select>
+            {errors.tipo && (
+              <FormErrorMessage>{errors.tipo.message}</FormErrorMessage>
+            )}
           </FormControl>
 
-          <FormControl isRequired>
+          <FormControl isRequired isInvalid={!!errors.descripcion}>
             <FormLabel color="gray.300">Descripción</FormLabel>
             <Textarea
-              name="descripcion"
-              value={formData.descripcion}
-              onChange={handleChange}
+              {...register("descripcion")}
               bg="gray.900"
               borderColor="gray.600"
               color="white"
@@ -152,14 +159,15 @@ const InmuebleForm = () => {
               }}
               rows={4}
             />
+            {errors.descripcion && (
+              <FormErrorMessage>{errors.descripcion.message}</FormErrorMessage>
+            )}
           </FormControl>
 
-          <FormControl isRequired>
+          <FormControl isRequired isInvalid={!!errors.ubicacion}>
             <FormLabel color="gray.300">Ubicación</FormLabel>
             <Input
-              name="ubicacion"
-              value={formData.ubicacion}
-              onChange={handleChange}
+              {...register("ubicacion")}
               bg="gray.900"
               borderColor="gray.600"
               color="white"
@@ -169,31 +177,40 @@ const InmuebleForm = () => {
                 boxShadow: "0 0 0 1px #3182CE",
               }}
             />
+            {errors.ubicacion && (
+              <FormErrorMessage>{errors.ubicacion.message}</FormErrorMessage>
+            )}
           </FormControl>
 
-          <FormControl>
+          <FormControl isInvalid={!!errors.hectareas}>
             <FormLabel color="gray.300">Hectáreas (opcional)</FormLabel>
-            <NumberInput
-              min={0}
-              value={formData.hectareas ?? ""}
-              onChange={(valueString) =>
-                setFormData({
-                  ...formData,
-                  hectareas: valueString ? parseFloat(valueString) : undefined,
-                })
-              }
-            >
-              <NumberInputField
-                bg="gray.900"
-                borderColor="gray.600"
-                color="white"
-                _hover={{ borderColor: "gray.500" }}
-                _focus={{
-                  borderColor: "blue.500",
-                  boxShadow: "0 0 0 1px #3182CE",
-                }}
-              />
-            </NumberInput>
+            <Controller
+              name="hectareas"
+              control={control}
+              render={({ field: { onChange, value } }) => (
+                <NumberInput
+                  min={0}
+                  value={value ?? ""}
+                  onChange={(valueString) =>
+                    onChange(valueString ? parseFloat(valueString) : undefined)
+                  }
+                >
+                  <NumberInputField
+                    bg="gray.900"
+                    borderColor="gray.600"
+                    color="white"
+                    _hover={{ borderColor: "gray.500" }}
+                    _focus={{
+                      borderColor: "blue.500",
+                      boxShadow: "0 0 0 1px #3182CE",
+                    }}
+                  />
+                </NumberInput>
+              )}
+            />
+            {errors.hectareas && (
+              <FormErrorMessage>{errors.hectareas.message}</FormErrorMessage>
+            )}
           </FormControl>
 
           <Stack direction={{ base: "column", sm: "row" }} spacing={4} pt={4}>
