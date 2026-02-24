@@ -1,5 +1,5 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import { authService } from '../services/authService';
+import { createContext, useContext, useEffect, useState } from "react";
+import { authService } from "../services/authService";
 
 interface User {
   uid: string;
@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Verificar si hay un usuario guardado en localStorage
     const savedUser = authService.getUser();
     const token = authService.getToken();
-    
+
     if (savedUser && token) {
       setUser(savedUser);
     }
@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       uid: response.uid,
       email: response.email,
     };
-    
+
     authService.setToken(response.idToken);
     authService.setUser(userData);
     setUser(userData);
@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth debe ser usado dentro de un AuthProvider');
+    throw new Error("useAuth debe ser usado dentro de un AuthProvider");
   }
   return context;
 };
