@@ -1,7 +1,7 @@
 // Tipos de datos del backend
 export interface Persona {
   _id?: string;
-  tipoPersona: 'fisica' | 'juridica';
+  tipoPersona: "fisica" | "juridica";
   nombreCompleto: string;
   documento: string;
   email: string;
@@ -10,10 +10,10 @@ export interface Persona {
 
 export interface Inmueble {
   _id?: string;
-  tipo: 'casa' | 'campo';
+  tipo: "casa" | "campo";
   descripcion: string;
   ubicacion: string;
-  hectareas: number;
+  hectareas?: number;
 }
 
 export interface Contrato {
@@ -32,6 +32,6 @@ export interface Usuario {
   _id?: string;
   nombre: string;
   email: string;
-  rol: 'usuario' | 'admin';
+  rol: "usuario" | "admin";
   token?: string;
 }

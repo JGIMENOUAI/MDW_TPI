@@ -1,5 +1,5 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import { authService } from '../services/authService';
+import { createContext, useContext, useEffect, useState } from "react";
+import { authService } from "../services/authService";
 
 interface User {
   uid: string;
@@ -9,7 +9,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (email: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   loading: boolean;
 }
@@ -24,20 +24,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Verificar si hay un usuario guardado en localStorage
     const savedUser = authService.getUser();
     const token = authService.getToken();
-    
+
     if (savedUser && token) {
       setUser(savedUser);
     }
     setLoading(false);
   }, []);
 
-  const login = async (email: string) => {
-    const response = await authService.login(email);
+  const login = async (email: string, password: string) => {
+    const response = await authService.login(email, password);
     const userData = {
       uid: response.uid,
       email: response.email,
     };
-    
+
     authService.setToken(response.idToken);
     authService.setUser(userData);
     setUser(userData);
@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth debe ser usado dentro de un AuthProvider');
+    throw new Error("useAuth debe ser usado dentro de un AuthProvider");
   }
   return context;
 };

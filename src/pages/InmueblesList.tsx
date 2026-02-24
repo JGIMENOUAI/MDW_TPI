@@ -12,8 +12,8 @@ import {
 import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { personaService } from "../services/personaService";
-import type { Persona } from "../types";
+import { inmuebleService } from "../services/inmuebleService";
+import type { Inmueble } from "../types";
 import { PageHeader } from "../components/PageHeader";
 import { EmptyState } from "../components/EmptyState";
 import { LoadingState } from "../components/LoadingState";
@@ -21,14 +21,14 @@ import { DataTable, type Column } from "../components/DataTable";
 import { MobileCard } from "../components/MobileCard";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 
-const PersonasList = () => {
-  const [personas, setPersonas] = useState<Persona[]>([]);
+const InmueblesList = () => {
+  const [inmuebles, setInmuebles] = useState<Inmueble[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [personaToDelete, setPersonaToDelete] = useState<string | null>(null);
-  const [personaToDeactivate, setPersonaToDeactivate] = useState<string | null>(
-    null,
-  );
+  const [inmuebleToDelete, setInmuebleToDelete] = useState<string | null>(null);
+  const [inmuebleToDeactivate, setInmuebleToDeactivate] = useState<
+    string | null
+  >(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const {
     isOpen: isDeactivateOpen,
@@ -39,19 +39,19 @@ const PersonasList = () => {
   const deactivateCancelRef = useRef<HTMLButtonElement>(null!);
 
   useEffect(() => {
-    loadPersonas();
+    loadInmuebles();
   }, []);
 
-  const loadPersonas = async () => {
+  const loadInmuebles = async () => {
     try {
       setLoading(true);
-      const data = await personaService.getAll();
-      setPersonas(data);
+      const data = await inmuebleService.getAll();
+      setInmuebles(data);
       setError(null);
     } catch (err: unknown) {
       const error = err as { response?: { data?: { mensaje?: string } } };
       const errorMessage =
-        error.response?.data?.mensaje || "Error al cargar las personas";
+        error.response?.data?.mensaje || "Error al cargar los inmuebles";
       setError(errorMessage);
       console.error(err);
     } finally {
@@ -60,55 +60,55 @@ const PersonasList = () => {
   };
 
   const handleDelete = async (id: string) => {
-    setPersonaToDelete(id);
+    setInmuebleToDelete(id);
     onOpen();
   };
 
   const confirmDelete = async () => {
-    if (!personaToDelete) return;
+    if (!inmuebleToDelete) return;
 
     try {
-      await personaService.delete(personaToDelete);
-      loadPersonas();
+      await inmuebleService.delete(inmuebleToDelete);
+      loadInmuebles();
       onClose();
     } catch (err: unknown) {
       const error = err as { response?: { data?: { mensaje?: string } } };
       const errorMessage =
-        error.response?.data?.mensaje || "Error al eliminar la persona";
+        error.response?.data?.mensaje || "Error al eliminar el inmueble";
       alert(errorMessage);
       console.error(err);
     }
   };
 
   const handleDesactivar = async (id: string) => {
-    setPersonaToDeactivate(id);
+    setInmuebleToDeactivate(id);
     onDeactivateOpen();
   };
 
   const confirmDeactivate = async () => {
-    if (!personaToDeactivate) return;
+    if (!inmuebleToDeactivate) return;
 
     try {
-      await personaService.desactivar(personaToDeactivate);
-      loadPersonas();
+      await inmuebleService.desactivar(inmuebleToDeactivate);
+      loadInmuebles();
       onDeactivateClose();
     } catch (err: unknown) {
       const error = err as { response?: { data?: { mensaje?: string } } };
       const errorMessage =
-        error.response?.data?.mensaje || "Error al desactivar la persona";
+        error.response?.data?.mensaje || "Error al desactivar el inmueble";
       alert(errorMessage);
       console.error(err);
     }
   };
 
   // Definición de columnas para la tabla
-  const columns: Column<Persona>[] = [
+  const columns: Column<Inmueble>[] = [
     {
       header: "Tipo",
-      accessor: "tipoPersona",
+      accessor: "tipo",
       cell: (value) => (
         <Badge
-          colorScheme={value === "fisica" ? "green" : "blue"}
+          colorScheme="purple"
           fontSize="sm"
           px={3}
           py={1}
@@ -119,34 +119,33 @@ const PersonasList = () => {
       ),
     },
     {
-      header: "Nombre Completo",
-      accessor: "nombreCompleto",
+      header: "Descripción",
+      accessor: "descripcion",
       cell: (value) => (
-        <Text color="white" fontWeight="medium">
+        <Text color="white" fontWeight="medium" noOfLines={1}>
           {value as string}
         </Text>
       ),
     },
     {
-      header: "Documento",
-      accessor: "documento",
+      header: "Ubicación",
+      accessor: "ubicacion",
       hideBelow: "md",
     },
     {
-      header: "Email",
-      accessor: "email",
+      header: "Hectáreas",
+      accessor: (row) => row.hectareas || "-",
       hideBelow: "lg",
-    },
-    {
-      header: "Teléfono",
-      accessor: "telefono",
-      hideBelow: "lg",
+      isNumeric: true,
+      cell: (value) => (
+        <Text color="gray.300">{value !== "-" ? `${value} ha` : value}</Text>
+      ),
     },
     {
       header: "Acciones",
       accessor: (row) => (
         <Stack direction="row" spacing={2}>
-          <Link to={`/personas/editar/${row._id}`}>
+          <Link to={`/inmuebles/editar/${row._id}`}>
             <Button
               size="sm"
               colorScheme="blue"
@@ -187,7 +186,7 @@ const PersonasList = () => {
   ];
 
   if (loading) {
-    return <LoadingState type="list" columns={6} rows={5} />;
+    return <LoadingState type="list" columns={5} rows={5} />;
   }
 
   if (error) {
@@ -202,20 +201,20 @@ const PersonasList = () => {
   return (
     <Box w="full">
       <PageHeader
-        title="Personas"
-        subtitle="Gestiona todas las personas físicas y jurídicas del sistema"
+        title="Inmuebles"
+        subtitle="Administra todos los inmuebles y propiedades del sistema"
         actionButton={{
-          label: "Nueva Persona",
-          to: "/personas/nuevo",
+          label: "Nuevo Inmueble",
+          to: "/inmuebles/nuevo",
           icon: <AddIcon />,
         }}
       />
 
-      {personas.length === 0 ? (
+      {inmuebles.length === 0 ? (
         <EmptyState
           icon={<AddIcon boxSize={10} color="gray.400" />}
-          title="No hay personas registradas"
-          description="Comienza agregando una nueva persona física o jurídica haciendo clic en el botón 'Nueva Persona'."
+          title="No hay inmuebles registrados"
+          description="Comienza agregando un nuevo inmueble haciendo clic en el botón 'Nuevo Inmueble'."
         />
       ) : (
         <>
@@ -225,54 +224,48 @@ const PersonasList = () => {
             spacing={4}
             display={{ base: "grid", md: "none" }}
           >
-            {personas.map((persona) => (
-              <MobileCard key={persona._id}>
+            {inmuebles.map((inmueble) => (
+              <MobileCard key={inmueble._id}>
                 <Stack direction="row" justify="space-between" align="center">
-                  <Text color="white" fontWeight="bold" fontSize="lg">
-                    {persona.nombreCompleto}
+                  <Text
+                    color="white"
+                    fontWeight="bold"
+                    fontSize="lg"
+                    noOfLines={1}
+                  >
+                    {inmueble.descripcion}
                   </Text>
                   <Badge
-                    colorScheme={
-                      persona.tipoPersona === "fisica" ? "green" : "blue"
-                    }
+                    colorScheme="purple"
                     fontSize="sm"
                     px={3}
                     py={1}
                     borderRadius="full"
                   >
-                    {persona.tipoPersona}
+                    {inmueble.tipo}
                   </Badge>
                 </Stack>
 
                 <Box>
                   <Text color="gray.400" fontSize="sm" fontWeight="medium">
-                    Documento
+                    Ubicación
                   </Text>
                   <Text color="white" fontSize="md">
-                    {persona.documento}
+                    {inmueble.ubicacion}
                   </Text>
                 </Box>
 
                 <Box>
                   <Text color="gray.400" fontSize="sm" fontWeight="medium">
-                    Email
-                  </Text>
-                  <Text color="white" fontSize="sm">
-                    {persona.email}
-                  </Text>
-                </Box>
-
-                <Box>
-                  <Text color="gray.400" fontSize="sm" fontWeight="medium">
-                    Teléfono
+                    Hectáreas
                   </Text>
                   <Text color="white" fontSize="md">
-                    {persona.telefono}
+                    {inmueble.hectareas ? `${inmueble.hectareas} ha` : "-"}
                   </Text>
                 </Box>
 
                 <Stack spacing={2} pt={3}>
-                  <Link to={`/personas/editar/${persona._id}`}>
+                  <Link to={`/inmuebles/editar/${inmueble._id}`}>
                     <Button
                       size="md"
                       colorScheme="blue"
@@ -284,7 +277,7 @@ const PersonasList = () => {
                     </Button>
                   </Link>
                   <Button
-                    onClick={() => handleDesactivar(persona._id!)}
+                    onClick={() => handleDesactivar(inmueble._id!)}
                     size="md"
                     colorScheme="orange"
                     variant="outline"
@@ -294,7 +287,7 @@ const PersonasList = () => {
                     Desactivar
                   </Button>
                   <Button
-                    onClick={() => handleDelete(persona._id!)}
+                    onClick={() => handleDelete(inmueble._id!)}
                     size="md"
                     colorScheme="red"
                     variant="solid"
@@ -310,7 +303,7 @@ const PersonasList = () => {
           </SimpleGrid>
 
           {/* Desktop Table View */}
-          <DataTable data={personas} columns={columns} />
+          <DataTable data={inmuebles} columns={columns} />
         </>
       )}
 
@@ -318,8 +311,8 @@ const PersonasList = () => {
         isOpen={isOpen}
         onClose={onClose}
         onConfirm={confirmDelete}
-        title="Eliminar Persona"
-        message="¿Estás seguro de que deseas eliminar esta persona? Esta acción no se puede deshacer."
+        title="Eliminar Inmueble"
+        message="¿Estás seguro de que deseas eliminar este inmueble? Esta acción no se puede deshacer."
         cancelRef={cancelRef}
       />
 
@@ -327,8 +320,8 @@ const PersonasList = () => {
         isOpen={isDeactivateOpen}
         onClose={onDeactivateClose}
         onConfirm={confirmDeactivate}
-        title="Desactivar Persona"
-        message="¿Estás seguro de que deseas desactivar esta persona?"
+        title="Desactivar Inmueble"
+        message="¿Estás seguro de que deseas desactivar este inmueble?"
         confirmLabel="Desactivar"
         cancelRef={deactivateCancelRef}
       />
@@ -336,4 +329,4 @@ const PersonasList = () => {
   );
 };
 
-export default PersonasList;
+export default InmueblesList;
