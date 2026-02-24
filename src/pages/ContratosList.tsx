@@ -1,31 +1,25 @@
 import {
   Alert,
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogOverlay,
   AlertIcon,
   Badge,
   Box,
   Button,
-  Heading,
-  Spinner,
+  SimpleGrid,
   Stack,
-  Table,
-  Tbody,
-  Td,
   Text,
-  Th,
-  Thead,
-  Tr,
   useDisclosure,
 } from "@chakra-ui/react";
+import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { contratoService } from "../services/contratoService";
 import type { Contrato } from "../types";
+import { PageHeader } from "../components/PageHeader";
+import { EmptyState } from "../components/EmptyState";
+import { LoadingState } from "../components/LoadingState";
+import { DataTable, type Column } from "../components/DataTable";
+import { MobileCard } from "../components/MobileCard";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 
 const ContratosList = () => {
   const [contratos, setContratos] = useState<Contrato[]>([]);
@@ -33,7 +27,7 @@ const ContratosList = () => {
   const [error, setError] = useState<string | null>(null);
   const [contratoToDelete, setContratoToDelete] = useState<string | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const cancelRef = useRef<HTMLButtonElement>(null);
+  const cancelRef = useRef<HTMLButtonElement>(null!);
 
   useEffect(() => {
     loadContratos();
@@ -45,9 +39,10 @@ const ContratosList = () => {
       const data = await contratoService.getAll();
       setContratos(data);
       setError(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { mensaje?: string } } };
       const errorMessage =
-        err.response?.data?.mensaje || "Error al cargar los contratos";
+        error.response?.data?.mensaje || "Error al cargar los contratos";
       setError(errorMessage);
       console.error(err);
     } finally {
@@ -68,8 +63,9 @@ const ContratosList = () => {
       loadContratos();
       onClose();
     } catch (err: unknown) {
+      const error = err as { response?: { data?: { mensaje?: string } } };
       const errorMessage =
-        (err as any).response?.data?.mensaje || "Error al eliminar el contrato";
+        error.response?.data?.mensaje || "Error al eliminar el contrato";
       alert(errorMessage);
       console.error(err);
     }
@@ -79,173 +75,238 @@ const ContratosList = () => {
     return new Date(date).toLocaleDateString("es-AR");
   };
 
-  const getPersonaName = (persona: any): string => {
+  const getPersonaName = (
+    persona: string | { nombreCompleto?: string },
+  ): string => {
     if (typeof persona === "string") return persona;
     return persona?.nombreCompleto || "N/A";
   };
 
-  const getInmuebleDesc = (inmueble: any): string => {
+  const getInmuebleDesc = (
+    inmueble: string | { descripcion?: string },
+  ): string => {
     if (typeof inmueble === "string") return inmueble;
     return inmueble?.descripcion || "N/A";
   };
 
-  if (loading)
-    return (
-      <Box textAlign="center" py={8}>
-        <Spinner size="xl" color="blue.500" />
-      </Box>
-    );
+  const columns: Column<Contrato>[] = [
+    {
+      header: "Tipo",
+      accessor: "tipoContrato",
+      cell: (value) => (
+        <Badge
+          colorScheme={
+            value === "alquiler"
+              ? "green"
+              : value === "compraventa"
+                ? "blue"
+                : "purple"
+          }
+          fontSize="xs"
+        >
+          {value as string}
+        </Badge>
+      ),
+    },
+    {
+      header: "Locador",
+      accessor: (contrato) => getPersonaName(contrato.locador),
+    },
+    {
+      header: "Locatario",
+      accessor: (contrato) => getPersonaName(contrato.locatario),
+    },
+    {
+      header: "Inmueble",
+      accessor: (contrato) => (
+        <Text noOfLines={1}>{getInmuebleDesc(contrato.inmueble)}</Text>
+      ),
+      hideBelow: "lg",
+    },
+    {
+      header: "Monto",
+      accessor: (contrato) => `$${contrato.monto.toLocaleString()}`,
+      hideBelow: "md",
+    },
+    {
+      header: "Inicio",
+      accessor: (contrato) => formatDate(contrato.fechaInicio),
+      hideBelow: "lg",
+    },
+    {
+      header: "Acciones",
+      accessor: (contrato) => (
+        <Stack direction="row" spacing={2}>
+          <Link to={`/contratos/editar/${contrato._id}`}>
+            <Button
+              size="sm"
+              colorScheme="yellow"
+              minH="38px"
+              leftIcon={<EditIcon />}
+            >
+              Editar
+            </Button>
+          </Link>
+          <Button
+            onClick={() => handleDelete(contrato._id!)}
+            size="sm"
+            colorScheme="red"
+            minH="38px"
+            leftIcon={<DeleteIcon />}
+          >
+            Eliminar
+          </Button>
+        </Stack>
+      ),
+      hideBelow: "md",
+    },
+  ];
+
+  if (loading) return <LoadingState type="list" />;
 
   if (error)
     return (
-      <Alert status="error" bg="red.900" color="white" borderRadius="md">
+      <Alert status="error" bg="red.900" color="white" borderRadius="xl">
         <AlertIcon />
         {error}
       </Alert>
     );
 
   return (
-    <Box>
-      <Stack
-        direction={{ base: "column", md: "row" }}
-        justify="space-between"
-        align={{ base: "stretch", md: "center" }}
-        mb={6}
-        spacing={4}
-      >
-        <Heading size="lg" color="white">
-          Contratos
-        </Heading>
-        <Link to="/contratos/nuevo">
-          <Button colorScheme="blue" w={{ base: "full", md: "auto" }}>
-            Nuevo Contrato
-          </Button>
-        </Link>
-      </Stack>
+    <Box w="full">
+      <PageHeader
+        title="Contratos"
+        subtitle="Gestiona todos los contratos de alquiler y compraventa"
+        actionButton={{
+          label: "Nuevo Contrato",
+          to: "/contratos/nuevo",
+          icon: <AddIcon />,
+        }}
+      />
 
-      <Box
-        overflowX="auto"
-        bg="gray.800"
-        borderRadius="md"
-        border="1px"
-        borderColor="gray.700"
-      >
-        <Table variant="simple" size={{ base: "sm", md: "md" }}>
-          <Thead bg="gray.900">
-            <Tr>
-              <Th color="gray.400">Tipo</Th>
-              <Th color="gray.400">Locador</Th>
-              <Th color="gray.400">Locatario</Th>
-              <Th color="gray.400" display={{ base: "none", lg: "table-cell" }}>
-                Inmueble
-              </Th>
-              <Th color="gray.400" display={{ base: "none", md: "table-cell" }}>
-                Monto
-              </Th>
-              <Th color="gray.400" display={{ base: "none", lg: "table-cell" }}>
-                Inicio
-              </Th>
-              <Th color="gray.400">Acciones</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
+      {contratos.length === 0 ? (
+        <EmptyState
+          icon={<AddIcon boxSize={10} color="gray.400" />}
+          title="No hay contratos registrados"
+          description='Comienza creando un nuevo contrato haciendo clic en el botón "Nuevo Contrato".'
+        />
+      ) : (
+        <>
+          {/* Mobile Cards View */}
+          <SimpleGrid
+            columns={1}
+            spacing={4}
+            display={{ base: "grid", md: "none" }}
+          >
             {contratos.map((contrato) => (
-              <Tr key={contrato._id} _hover={{ bg: "gray.750" }}>
-                <Td>
-                  <Badge
-                    colorScheme={
-                      contrato.tipoContrato === "alquiler"
-                        ? "green"
-                        : contrato.tipoContrato === "compraventa"
-                          ? "blue"
-                          : "purple"
-                    }
-                    fontSize="xs"
-                  >
-                    {contrato.tipoContrato}
-                  </Badge>
-                </Td>
-                <Td color="white">{getPersonaName(contrato.locador)}</Td>
-                <Td color="white">{getPersonaName(contrato.locatario)}</Td>
-                <Td
-                  color="gray.300"
-                  display={{ base: "none", lg: "table-cell" }}
-                >
-                  <Text noOfLines={1}>
-                    {getInmuebleDesc(contrato.inmueble)}
-                  </Text>
-                </Td>
-                <Td
-                  color="gray.300"
-                  display={{ base: "none", md: "table-cell" }}
-                >
-                  ${contrato.monto.toLocaleString()}
-                </Td>
-                <Td
-                  color="gray.300"
-                  display={{ base: "none", lg: "table-cell" }}
-                >
-                  {formatDate(contrato.fechaInicio)}
-                </Td>
-                <Td>
-                  <Stack direction={{ base: "column", sm: "row" }} spacing={2}>
+              <MobileCard key={contrato._id}>
+                <Stack spacing={3}>
+                  <Stack direction="row" justify="space-between" align="center">
+                    <Text color="white" fontWeight="bold" fontSize="lg">
+                      {getPersonaName(contrato.locador)}
+                    </Text>
+                    <Badge
+                      colorScheme={
+                        contrato.tipoContrato === "alquiler"
+                          ? "green"
+                          : contrato.tipoContrato === "compraventa"
+                            ? "blue"
+                            : "purple"
+                      }
+                      fontSize="sm"
+                    >
+                      {contrato.tipoContrato}
+                    </Badge>
+                  </Stack>
+
+                  <Box>
+                    <Text color="gray.400" fontSize="sm">
+                      Locatario
+                    </Text>
+                    <Text color="white">
+                      {getPersonaName(contrato.locatario)}
+                    </Text>
+                  </Box>
+
+                  <Box>
+                    <Text color="gray.400" fontSize="sm">
+                      Inmueble
+                    </Text>
+                    <Text color="white">
+                      {getInmuebleDesc(contrato.inmueble)}
+                    </Text>
+                  </Box>
+
+                  <Box>
+                    <Text color="gray.400" fontSize="sm">
+                      Monto
+                    </Text>
+                    <Text color="white" fontSize="lg" fontWeight="bold">
+                      ${contrato.monto.toLocaleString()}
+                    </Text>
+                  </Box>
+
+                  <Box>
+                    <Text color="gray.400" fontSize="sm">
+                      Fecha de Inicio
+                    </Text>
+                    <Text color="white">
+                      {formatDate(contrato.fechaInicio)}
+                    </Text>
+                  </Box>
+
+                  {contrato.fechaFin && (
+                    <Box>
+                      <Text color="gray.400" fontSize="sm">
+                        Fecha de Fin
+                      </Text>
+                      <Text color="white">{formatDate(contrato.fechaFin)}</Text>
+                    </Box>
+                  )}
+
+                  <Stack spacing={2} pt={2}>
                     <Link to={`/contratos/editar/${contrato._id}`}>
                       <Button
-                        size="sm"
+                        size="md"
                         colorScheme="yellow"
-                        w={{ base: "full", sm: "auto" }}
+                        w="full"
+                        minH="48px"
+                        leftIcon={<EditIcon />}
                       >
                         Editar
                       </Button>
                     </Link>
                     <Button
                       onClick={() => handleDelete(contrato._id!)}
-                      size="sm"
+                      size="md"
                       colorScheme="red"
-                      w={{ base: "full", sm: "auto" }}
+                      w="full"
+                      minH="48px"
+                      leftIcon={<DeleteIcon />}
                     >
                       Eliminar
                     </Button>
                   </Stack>
-                </Td>
-              </Tr>
+                </Stack>
+              </MobileCard>
             ))}
-          </Tbody>
-        </Table>
-        {contratos.length === 0 && (
-          <Box textAlign="center" py={8} color="gray.500">
-            No hay contratos registrados
+          </SimpleGrid>
+
+          {/* Desktop Table View */}
+          <Box display={{ base: "none", md: "block" }}>
+            <DataTable data={contratos} columns={columns} />
           </Box>
-        )}
-      </Box>
+        </>
+      )}
 
-      <AlertDialog
+      <ConfirmDialog
         isOpen={isOpen}
-        leastDestructiveRef={cancelRef}
         onClose={onClose}
-      >
-        <AlertDialogOverlay>
-          <AlertDialogContent bg="gray.800" borderColor="gray.700">
-            <AlertDialogHeader fontSize="lg" fontWeight="bold" color="white">
-              Eliminar Contrato
-            </AlertDialogHeader>
-
-            <AlertDialogBody color="gray.300">
-              ¿Estás seguro de que deseas eliminar este contrato? Esta acción no
-              se puede deshacer.
-            </AlertDialogBody>
-
-            <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={onClose}>
-                Cancelar
-              </Button>
-              <Button colorScheme="red" onClick={confirmDelete} ml={3}>
-                Eliminar
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
+        onConfirm={confirmDelete}
+        title="Eliminar Contrato"
+        message="¿Estás seguro de que deseas eliminar este contrato? Esta acción no se puede deshacer."
+        cancelRef={cancelRef}
+      />
     </Box>
   );
 };

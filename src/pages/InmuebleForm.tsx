@@ -1,12 +1,10 @@
 import {
-  Alert,
-  AlertIcon,
   Box,
   Button,
+  Fade,
   FormControl,
   FormErrorMessage,
   FormLabel,
-  Heading,
   Input,
   NumberInput,
   NumberInputField,
@@ -19,17 +17,20 @@ import { joiResolver } from "@hookform/resolvers/joi";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
+import { useAppToast } from "../hooks/useToast";
 import { inmuebleService } from "../services/inmuebleService";
 import {
   inmuebleSchema,
   type InmuebleFormData,
 } from "../schemas/inmuebleSchema";
+import { PageHeader } from "../components/PageHeader";
+import { CARD_STYLES, INPUT_STYLES } from "../styles/constants";
 
 const InmuebleForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { showSuccess, showError } = useAppToast();
 
   const {
     register,
@@ -52,6 +53,7 @@ const InmuebleForm = () => {
     if (id) {
       loadInmueble();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const loadInmueble = async () => {
@@ -63,32 +65,32 @@ const InmuebleForm = () => {
       if (data.hectareas !== undefined) {
         setValue("hectareas", data.hectareas);
       }
-      setError(null);
     } catch (err: unknown) {
       const error = err as { response?: { data?: { mensaje?: string } } };
       const errorMessage =
         error.response?.data?.mensaje || "Error al cargar el inmueble";
-      setError(errorMessage);
+      showError(errorMessage);
       console.error(err);
     }
   };
 
   const onSubmit = async (data: InmuebleFormData) => {
     setLoading(true);
-    setError(null);
 
     try {
       if (id) {
         await inmuebleService.update(id, data);
+        showSuccess("Inmueble actualizado correctamente");
       } else {
         await inmuebleService.create(data);
+        showSuccess("Inmueble creado correctamente");
       }
       navigate("/inmuebles");
     } catch (err: unknown) {
       const error = err as { response?: { data?: { mensaje?: string } } };
       const errorMessage =
         error.response?.data?.mensaje || "Error al guardar el inmueble";
-      setError(errorMessage);
+      showError(errorMessage);
       console.error(err);
     } finally {
       setLoading(false);
@@ -96,145 +98,93 @@ const InmuebleForm = () => {
   };
 
   return (
-    <Box>
-      <Heading mb={6} size="lg" color="white">
-        {id ? "Editar Inmueble" : "Nuevo Inmueble"}
-      </Heading>
+    <Fade in={true}>
+      <Box w="full">
+        <PageHeader
+          title={id ? "Editar Inmueble" : "Nuevo Inmueble"}
+          subtitle={
+            id
+              ? "Actualiza los datos del inmueble"
+              : "Registra un nuevo inmueble o propiedad"
+          }
+        />
 
-      {error && (
-        <Alert
-          status="error"
-          mb={4}
-          bg="red.900"
-          color="white"
-          borderRadius="md"
-        >
-          <AlertIcon />
-          {error}
-        </Alert>
-      )}
-
-      <Box
-        as="form"
-        onSubmit={handleSubmit(onSubmit)}
-        bg="gray.800"
-        p={{ base: 4, md: 6 }}
-        borderRadius="md"
-        border="1px"
-        borderColor="gray.700"
-      >
-        <VStack spacing={4} align="stretch">
-          <FormControl isRequired isInvalid={!!errors.tipo}>
-            <FormLabel color="gray.300">Tipo</FormLabel>
-            <Select
-              {...register("tipo")}
-              bg="gray.900"
-              borderColor="gray.600"
-              color="white"
-              _hover={{ borderColor: "gray.500" }}
-            >
-              <option value="casa" style={{ background: "#1A202C" }}>
-                Casa
-              </option>
-              <option value="campo" style={{ background: "#1A202C" }}>
-                Campo
-              </option>
-            </Select>
-            {errors.tipo && (
-              <FormErrorMessage>{errors.tipo.message}</FormErrorMessage>
-            )}
-          </FormControl>
-
-          <FormControl isRequired isInvalid={!!errors.descripcion}>
-            <FormLabel color="gray.300">Descripción</FormLabel>
-            <Textarea
-              {...register("descripcion")}
-              bg="gray.900"
-              borderColor="gray.600"
-              color="white"
-              _hover={{ borderColor: "gray.500" }}
-              _focus={{
-                borderColor: "blue.500",
-                boxShadow: "0 0 0 1px #3182CE",
-              }}
-              rows={4}
-            />
-            {errors.descripcion && (
-              <FormErrorMessage>{errors.descripcion.message}</FormErrorMessage>
-            )}
-          </FormControl>
-
-          <FormControl isRequired isInvalid={!!errors.ubicacion}>
-            <FormLabel color="gray.300">Ubicación</FormLabel>
-            <Input
-              {...register("ubicacion")}
-              bg="gray.900"
-              borderColor="gray.600"
-              color="white"
-              _hover={{ borderColor: "gray.500" }}
-              _focus={{
-                borderColor: "blue.500",
-                boxShadow: "0 0 0 1px #3182CE",
-              }}
-            />
-            {errors.ubicacion && (
-              <FormErrorMessage>{errors.ubicacion.message}</FormErrorMessage>
-            )}
-          </FormControl>
-
-          <FormControl isInvalid={!!errors.hectareas}>
-            <FormLabel color="gray.300">Hectáreas (opcional)</FormLabel>
-            <Controller
-              name="hectareas"
-              control={control}
-              render={({ field: { onChange, value } }) => (
-                <NumberInput
-                  min={0}
-                  value={value ?? ""}
-                  onChange={(valueString) =>
-                    onChange(valueString ? parseFloat(valueString) : undefined)
-                  }
-                >
-                  <NumberInputField
-                    bg="gray.900"
-                    borderColor="gray.600"
-                    color="white"
-                    _hover={{ borderColor: "gray.500" }}
-                    _focus={{
-                      borderColor: "blue.500",
-                      boxShadow: "0 0 0 1px #3182CE",
-                    }}
-                  />
-                </NumberInput>
+        <Box as="form" onSubmit={handleSubmit(onSubmit)} {...CARD_STYLES}>
+          <VStack spacing={4} align="stretch">
+            <FormControl isRequired isInvalid={!!errors.tipo}>
+              <FormLabel>Tipo</FormLabel>
+              <Select {...register("tipo")}>
+                <option value="casa">Casa</option>
+                <option value="campo">Campo</option>
+              </Select>
+              {errors.tipo && (
+                <FormErrorMessage>{errors.tipo.message}</FormErrorMessage>
               )}
-            />
-            {errors.hectareas && (
-              <FormErrorMessage>{errors.hectareas.message}</FormErrorMessage>
-            )}
-          </FormControl>
+            </FormControl>
 
-          <Stack direction={{ base: "column", sm: "row" }} spacing={4} pt={4}>
-            <Button
-              onClick={() => navigate("/inmuebles")}
-              flex={1}
-              bg="gray.700"
-              color="white"
-              _hover={{ bg: "gray.600" }}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              colorScheme="blue"
-              isLoading={loading}
-              flex={1}
-            >
-              Guardar
-            </Button>
-          </Stack>
-        </VStack>
+            <FormControl isRequired isInvalid={!!errors.descripcion}>
+              <FormLabel>Descripción</FormLabel>
+              <Textarea {...register("descripcion")} rows={4} />
+              {errors.descripcion && (
+                <FormErrorMessage>
+                  {errors.descripcion.message}
+                </FormErrorMessage>
+              )}
+            </FormControl>
+
+            <FormControl isRequired isInvalid={!!errors.ubicacion}>
+              <FormLabel>Ubicación</FormLabel>
+              <Input {...register("ubicacion")} />
+              {errors.ubicacion && (
+                <FormErrorMessage>{errors.ubicacion.message}</FormErrorMessage>
+              )}
+            </FormControl>
+
+            <FormControl isInvalid={!!errors.hectareas}>
+              <FormLabel>Hectáreas (opcional)</FormLabel>
+              <Controller
+                name="hectareas"
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  <NumberInput
+                    min={0}
+                    value={value ?? ""}
+                    onChange={(valueString) =>
+                      onChange(
+                        valueString ? parseFloat(valueString) : undefined,
+                      )
+                    }
+                  >
+                    <NumberInputField {...INPUT_STYLES} />
+                  </NumberInput>
+                )}
+              />
+              {errors.hectareas && (
+                <FormErrorMessage>{errors.hectareas.message}</FormErrorMessage>
+              )}
+            </FormControl>
+
+            <Stack direction={{ base: "column", sm: "row" }} spacing={4} pt={4}>
+              <Button
+                onClick={() => navigate("/inmuebles")}
+                flex={1}
+                variant="secondary"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                colorScheme="blue"
+                isLoading={loading}
+                flex={1}
+              >
+                Guardar
+              </Button>
+            </Stack>
+          </VStack>
+        </Box>
       </Box>
-    </Box>
+    </Fade>
   );
 };
 

@@ -1,12 +1,9 @@
 import {
-  Alert,
-  AlertIcon,
   Box,
   Button,
   FormControl,
   FormErrorMessage,
   FormLabel,
-  Heading,
   Input,
   Link as ChakraLink,
   Text,
@@ -19,10 +16,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
 import { clearError, registerUser } from "../features/auth/authSlice";
 import { registerSchema, type RegisterFormData } from "../schemas/authSchema";
+import { useAppToast } from "../hooks/useToast";
+import { PageHeader } from "../components/PageHeader";
+import { CARD_STYLES } from "../styles/constants";
 
 const Register = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const { showSuccess, showError } = useAppToast();
   const { loading, error, isAuthenticated } = useAppSelector(
     (state) => state.auth,
   );
@@ -39,6 +40,13 @@ const Register = () => {
   useEffect(() => {
     dispatch(clearError());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (error) {
+      showError(error);
+      dispatch(clearError());
+    }
+  }, [error, showError, dispatch]);
 
   useEffect(() => {
     if (isAuthenticated && success) {
@@ -59,85 +67,32 @@ const Register = () => {
 
     if (registerUser.fulfilled.match(result)) {
       setSuccess(true);
+      showSuccess("Cuenta creada exitosamente. Redirigiendo...");
     }
   };
 
   return (
-    <Box>
-      <Heading mb={6} size="lg" textAlign="center" color="white">
-        Crear Cuenta
-      </Heading>
+    <Box w="full">
+      <PageHeader
+        title="Crear Cuenta"
+        subtitle="Regístrate para acceder al sistema de gestión de contratos"
+      />
 
-      {(error || Object.keys(errors).length > 0) && (
-        <Alert
-          status="error"
-          mb={4}
-          bg="red.900"
-          color="white"
-          borderRadius="md"
-        >
-          <AlertIcon />
-          {error ||
-            Object.values(errors)[0]?.message ||
-            "Por favor corrija los errores"}
-        </Alert>
-      )}
-
-      {success && (
-        <Alert
-          status="success"
-          mb={4}
-          bg="green.900"
-          color="white"
-          borderRadius="md"
-        >
-          <AlertIcon />
-          Cuenta creada exitosamente. Redirigiendo al login...
-        </Alert>
-      )}
-
-      <Box
-        as="form"
-        onSubmit={handleSubmit(onSubmit)}
-        bg="gray.800"
-        p={6}
-        borderRadius="md"
-        border="1px"
-        borderColor="gray.700"
-      >
+      <Box as="form" onSubmit={handleSubmit(onSubmit)} {...CARD_STYLES}>
         <VStack spacing={4} align="stretch">
           <FormControl isRequired isInvalid={!!errors.nombre}>
-            <FormLabel color="gray.300">Nombre</FormLabel>
-            <Input
-              {...register("nombre")}
-              bg="gray.900"
-              borderColor="gray.600"
-              color="white"
-              _hover={{ borderColor: "gray.500" }}
-              _focus={{
-                borderColor: "blue.500",
-                boxShadow: "0 0 0 1px #3182CE",
-              }}
-              placeholder="Tu nombre completo"
-            />
+            <FormLabel>Nombre</FormLabel>
+            <Input {...register("nombre")} placeholder="Tu nombre completo" />
             {errors.nombre && (
               <FormErrorMessage>{errors.nombre.message}</FormErrorMessage>
             )}
           </FormControl>
 
           <FormControl isRequired isInvalid={!!errors.email}>
-            <FormLabel color="gray.300">Email</FormLabel>
+            <FormLabel>Email</FormLabel>
             <Input
               type="email"
               {...register("email")}
-              bg="gray.900"
-              borderColor="gray.600"
-              color="white"
-              _hover={{ borderColor: "gray.500" }}
-              _focus={{
-                borderColor: "blue.500",
-                boxShadow: "0 0 0 1px #3182CE",
-              }}
               placeholder="correo@ejemplo.com"
             />
             {errors.email && (
@@ -146,18 +101,10 @@ const Register = () => {
           </FormControl>
 
           <FormControl isRequired isInvalid={!!errors.password}>
-            <FormLabel color="gray.300">Contraseña</FormLabel>
+            <FormLabel>Contraseña</FormLabel>
             <Input
               type="password"
               {...register("password")}
-              bg="gray.900"
-              borderColor="gray.600"
-              color="white"
-              _hover={{ borderColor: "gray.500" }}
-              _focus={{
-                borderColor: "blue.500",
-                boxShadow: "0 0 0 1px #3182CE",
-              }}
               placeholder="Mínimo 6 caracteres"
             />
             {errors.password && (
@@ -166,18 +113,10 @@ const Register = () => {
           </FormControl>
 
           <FormControl isRequired isInvalid={!!errors.confirmPassword}>
-            <FormLabel color="gray.300">Confirmar Contraseña</FormLabel>
+            <FormLabel>Confirmar Contraseña</FormLabel>
             <Input
               type="password"
               {...register("confirmPassword")}
-              bg="gray.900"
-              borderColor="gray.600"
-              color="white"
-              _hover={{ borderColor: "gray.500" }}
-              _focus={{
-                borderColor: "blue.500",
-                boxShadow: "0 0 0 1px #3182CE",
-              }}
               placeholder="Repite tu contraseña"
             />
             {errors.confirmPassword && (

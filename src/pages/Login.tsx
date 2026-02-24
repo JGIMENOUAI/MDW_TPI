@@ -1,12 +1,9 @@
 import {
-  Alert,
-  AlertIcon,
   Box,
   Button,
   FormControl,
   FormErrorMessage,
   FormLabel,
-  Heading,
   Input,
   Link as ChakraLink,
   Text,
@@ -19,10 +16,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
 import { clearError, loginUser } from "../features/auth/authSlice";
 import { loginSchema, type LoginFormData } from "../schemas/authSchema";
+import { useAppToast } from "../hooks/useToast";
+import { PageHeader } from "../components/PageHeader";
+import { CARD_STYLES } from "../styles/constants";
 
 const Login = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const { showError } = useAppToast();
   const { loading, error, isAuthenticated } = useAppSelector(
     (state) => state.auth,
   );
@@ -40,6 +41,13 @@ const Login = () => {
   }, [dispatch]);
 
   useEffect(() => {
+    if (error) {
+      showError(error);
+      dispatch(clearError());
+    }
+  }, [error, showError, dispatch]);
+
+  useEffect(() => {
     if (isAuthenticated) {
       navigate("/dashboard");
     }
@@ -50,47 +58,19 @@ const Login = () => {
   };
 
   return (
-    <Box>
-      <Heading mb={6} size="lg" textAlign="center" color="white">
-        Iniciar Sesión
-      </Heading>
+    <Box w="full">
+      <PageHeader
+        title="Iniciar Sesión"
+        subtitle="Accede a tu cuenta para gestionar contratos e inmuebles"
+      />
 
-      {error && (
-        <Alert
-          status="error"
-          mb={4}
-          bg="red.900"
-          color="white"
-          borderRadius="md"
-        >
-          <AlertIcon />
-          {error}
-        </Alert>
-      )}
-
-      <Box
-        as="form"
-        onSubmit={handleSubmit(onSubmit)}
-        bg="gray.800"
-        p={6}
-        borderRadius="md"
-        border="1px"
-        borderColor="gray.700"
-      >
+      <Box as="form" onSubmit={handleSubmit(onSubmit)} {...CARD_STYLES}>
         <VStack spacing={4} align="stretch">
           <FormControl isRequired isInvalid={!!errors.email}>
-            <FormLabel color="gray.300">Email</FormLabel>
+            <FormLabel>Email</FormLabel>
             <Input
               type="email"
               {...register("email")}
-              bg="gray.900"
-              borderColor="gray.600"
-              color="white"
-              _hover={{ borderColor: "gray.500" }}
-              _focus={{
-                borderColor: "blue.500",
-                boxShadow: "0 0 0 1px #3182CE",
-              }}
               placeholder="correo@ejemplo.com"
             />
             {errors.email && (
@@ -99,18 +79,10 @@ const Login = () => {
           </FormControl>
 
           <FormControl isRequired isInvalid={!!errors.password}>
-            <FormLabel color="gray.300">Contraseña</FormLabel>
+            <FormLabel>Contraseña</FormLabel>
             <Input
               type="password"
               {...register("password")}
-              bg="gray.900"
-              borderColor="gray.600"
-              color="white"
-              _hover={{ borderColor: "gray.500" }}
-              _focus={{
-                borderColor: "blue.500",
-                boxShadow: "0 0 0 1px #3182CE",
-              }}
               placeholder="••••••••"
             />
             {errors.password && (

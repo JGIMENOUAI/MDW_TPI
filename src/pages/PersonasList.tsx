@@ -1,38 +1,42 @@
 import {
   Alert,
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogOverlay,
   AlertIcon,
   Badge,
   Box,
   Button,
-  Heading,
-  Spinner,
+  SimpleGrid,
   Stack,
-  Table,
-  Tbody,
-  Td,
-  Th,
-  Thead,
-  Tr,
+  Text,
   useDisclosure,
 } from "@chakra-ui/react";
+import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { personaService } from "../services/personaService";
 import type { Persona } from "../types";
+import { PageHeader } from "../components/PageHeader";
+import { EmptyState } from "../components/EmptyState";
+import { LoadingState } from "../components/LoadingState";
+import { DataTable, type Column } from "../components/DataTable";
+import { MobileCard } from "../components/MobileCard";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 
 const PersonasList = () => {
   const [personas, setPersonas] = useState<Persona[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [personaToDelete, setPersonaToDelete] = useState<string | null>(null);
+  const [personaToDeactivate, setPersonaToDeactivate] = useState<string | null>(
+    null,
+  );
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const cancelRef = useRef<HTMLButtonElement>(null);
+  const {
+    isOpen: isDeactivateOpen,
+    onOpen: onDeactivateOpen,
+    onClose: onDeactivateClose,
+  } = useDisclosure();
+  const cancelRef = useRef<HTMLButtonElement>(null!);
+  const deactivateCancelRef = useRef<HTMLButtonElement>(null!);
 
   useEffect(() => {
     loadPersonas();
@@ -44,9 +48,10 @@ const PersonasList = () => {
       const data = await personaService.getAll();
       setPersonas(data);
       setError(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { mensaje?: string } } };
       const errorMessage =
-        err.response?.data?.mensaje || "Error al cargar las personas";
+        error.response?.data?.mensaje || "Error al cargar las personas";
       setError(errorMessage);
       console.error(err);
     } finally {
@@ -67,183 +72,262 @@ const PersonasList = () => {
       loadPersonas();
       onClose();
     } catch (err: unknown) {
+      const error = err as { response?: { data?: { mensaje?: string } } };
       const errorMessage =
-        (err as any).response?.data?.mensaje || "Error al eliminar la persona";
+        error.response?.data?.mensaje || "Error al eliminar la persona";
       alert(errorMessage);
       console.error(err);
     }
   };
 
   const handleDesactivar = async (id: string) => {
+    setPersonaToDeactivate(id);
+    onDeactivateOpen();
+  };
+
+  const confirmDeactivate = async () => {
+    if (!personaToDeactivate) return;
+
     try {
-      await personaService.desactivar(id);
+      await personaService.desactivar(personaToDeactivate);
       loadPersonas();
+      onDeactivateClose();
     } catch (err: unknown) {
+      const error = err as { response?: { data?: { mensaje?: string } } };
       const errorMessage =
-        (err as any).response?.data?.mensaje ||
-        "Error al desactivar la persona";
+        error.response?.data?.mensaje || "Error al desactivar la persona";
       alert(errorMessage);
       console.error(err);
     }
   };
 
-  if (loading)
-    return (
-      <Box textAlign="center" py={8}>
-        <Spinner size="xl" color="blue.500" />
-      </Box>
-    );
+  // Definición de columnas para la tabla
+  const columns: Column<Persona>[] = [
+    {
+      header: "Tipo",
+      accessor: "tipoPersona",
+      cell: (value) => (
+        <Badge
+          colorScheme={value === "fisica" ? "green" : "blue"}
+          fontSize="sm"
+          px={3}
+          py={1}
+          borderRadius="full"
+        >
+          {value as string}
+        </Badge>
+      ),
+    },
+    {
+      header: "Nombre Completo",
+      accessor: "nombreCompleto",
+      cell: (value) => (
+        <Text color="white" fontWeight="medium">
+          {value as string}
+        </Text>
+      ),
+    },
+    {
+      header: "Documento",
+      accessor: "documento",
+      hideBelow: "md",
+    },
+    {
+      header: "Email",
+      accessor: "email",
+      hideBelow: "lg",
+    },
+    {
+      header: "Teléfono",
+      accessor: "telefono",
+      hideBelow: "lg",
+    },
+    {
+      header: "Acciones",
+      accessor: (row) => (
+        <Stack direction="row" spacing={2}>
+          <Link to={`/personas/editar/${row._id}`}>
+            <Button
+              size="sm"
+              colorScheme="yellow"
+              minH="38px"
+              leftIcon={<EditIcon />}
+            >
+              Editar
+            </Button>
+          </Link>
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDesactivar(row._id!);
+            }}
+            size="sm"
+            colorScheme="orange"
+            minH="38px"
+          >
+            Desactivar
+          </Button>
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDelete(row._id!);
+            }}
+            size="sm"
+            colorScheme="red"
+            minH="38px"
+            leftIcon={<DeleteIcon />}
+          >
+            Eliminar
+          </Button>
+        </Stack>
+      ),
+    },
+  ];
 
-  if (error)
+  if (loading) {
+    return <LoadingState type="list" columns={6} rows={5} />;
+  }
+
+  if (error) {
     return (
-      <Alert status="error" bg="red.900" color="white" borderRadius="md">
+      <Alert status="error" bg="red.900" color="white" borderRadius="xl">
         <AlertIcon />
         {error}
       </Alert>
     );
+  }
 
   return (
-    <Box>
-      <Stack
-        direction={{ base: "column", md: "row" }}
-        justify="space-between"
-        align={{ base: "stretch", md: "center" }}
-        mb={6}
-        spacing={4}
-      >
-        <Heading size="lg" color="white">
-          Personas
-        </Heading>
-        <Link to="/personas/nuevo">
-          <Button colorScheme="blue" w={{ base: "full", md: "auto" }}>
-            Nueva Persona
-          </Button>
-        </Link>
-      </Stack>
+    <Box w="full">
+      <PageHeader
+        title="Personas"
+        subtitle="Gestiona todas las personas físicas y jurídicas del sistema"
+        actionButton={{
+          label: "Nueva Persona",
+          to: "/personas/nuevo",
+          icon: <AddIcon />,
+        }}
+      />
 
-      <Box
-        overflowX="auto"
-        bg="gray.800"
-        borderRadius="md"
-        border="1px"
-        borderColor="gray.700"
-      >
-        <Table variant="simple" size={{ base: "sm", md: "md" }}>
-          <Thead bg="gray.900">
-            <Tr>
-              <Th color="gray.400">Tipo</Th>
-              <Th color="gray.400">Nombre</Th>
-              <Th color="gray.400" display={{ base: "none", md: "table-cell" }}>
-                Documento
-              </Th>
-              <Th color="gray.400" display={{ base: "none", lg: "table-cell" }}>
-                Email
-              </Th>
-              <Th color="gray.400" display={{ base: "none", lg: "table-cell" }}>
-                Teléfono
-              </Th>
-              <Th color="gray.400">Acciones</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
+      {personas.length === 0 ? (
+        <EmptyState
+          icon={<AddIcon boxSize={10} color="gray.400" />}
+          title="No hay personas registradas"
+          description="Comienza agregando una nueva persona física o jurídica haciendo clic en el botón 'Nueva Persona'."
+        />
+      ) : (
+        <>
+          {/* Mobile Cards View */}
+          <SimpleGrid
+            columns={1}
+            spacing={4}
+            display={{ base: "grid", md: "none" }}
+          >
             {personas.map((persona) => (
-              <Tr key={persona._id} _hover={{ bg: "gray.750" }}>
-                <Td>
+              <MobileCard key={persona._id}>
+                <Stack direction="row" justify="space-between" align="center">
+                  <Text color="white" fontWeight="bold" fontSize="lg">
+                    {persona.nombreCompleto}
+                  </Text>
                   <Badge
                     colorScheme={
                       persona.tipoPersona === "fisica" ? "green" : "blue"
                     }
-                    fontSize="xs"
+                    fontSize="sm"
+                    px={3}
+                    py={1}
+                    borderRadius="full"
                   >
                     {persona.tipoPersona}
                   </Badge>
-                </Td>
-                <Td color="white">{persona.nombreCompleto}</Td>
-                <Td
-                  color="gray.300"
-                  display={{ base: "none", md: "table-cell" }}
-                >
-                  {persona.documento}
-                </Td>
-                <Td
-                  color="gray.300"
-                  display={{ base: "none", lg: "table-cell" }}
-                >
-                  {persona.email}
-                </Td>
-                <Td
-                  color="gray.300"
-                  display={{ base: "none", lg: "table-cell" }}
-                >
-                  {persona.telefono}
-                </Td>
-                <Td>
-                  <Stack direction={{ base: "column", sm: "row" }} spacing={2}>
-                    <Link to={`/personas/editar/${persona._id}`}>
-                      <Button
-                        size="sm"
-                        colorScheme="yellow"
-                        w={{ base: "full", sm: "auto" }}
-                      >
-                        Editar
-                      </Button>
-                    </Link>
+                </Stack>
+
+                <Box>
+                  <Text color="gray.400" fontSize="sm" fontWeight="medium">
+                    Documento
+                  </Text>
+                  <Text color="white" fontSize="md">
+                    {persona.documento}
+                  </Text>
+                </Box>
+
+                <Box>
+                  <Text color="gray.400" fontSize="sm" fontWeight="medium">
+                    Email
+                  </Text>
+                  <Text color="white" fontSize="sm">
+                    {persona.email}
+                  </Text>
+                </Box>
+
+                <Box>
+                  <Text color="gray.400" fontSize="sm" fontWeight="medium">
+                    Teléfono
+                  </Text>
+                  <Text color="white" fontSize="md">
+                    {persona.telefono}
+                  </Text>
+                </Box>
+
+                <Stack spacing={2} pt={3}>
+                  <Link to={`/personas/editar/${persona._id}`}>
                     <Button
-                      onClick={() => handleDesactivar(persona._id!)}
-                      size="sm"
-                      colorScheme="orange"
-                      w={{ base: "full", sm: "auto" }}
+                      size="md"
+                      colorScheme="yellow"
+                      w="full"
+                      minH="48px"
+                      leftIcon={<EditIcon />}
                     >
-                      Desactivar
+                      Editar
                     </Button>
-                    <Button
-                      onClick={() => handleDelete(persona._id!)}
-                      size="sm"
-                      colorScheme="red"
-                      w={{ base: "full", sm: "auto" }}
-                    >
-                      Eliminar
-                    </Button>
-                  </Stack>
-                </Td>
-              </Tr>
+                  </Link>
+                  <Button
+                    onClick={() => handleDesactivar(persona._id!)}
+                    size="md"
+                    colorScheme="orange"
+                    w="full"
+                    minH="48px"
+                  >
+                    Desactivar
+                  </Button>
+                  <Button
+                    onClick={() => handleDelete(persona._id!)}
+                    size="md"
+                    colorScheme="red"
+                    w="full"
+                    minH="48px"
+                    leftIcon={<DeleteIcon />}
+                  >
+                    Eliminar
+                  </Button>
+                </Stack>
+              </MobileCard>
             ))}
-          </Tbody>
-        </Table>
-        {personas.length === 0 && (
-          <Box textAlign="center" py={8} color="gray.500">
-            No hay personas registradas
-          </Box>
-        )}
-      </Box>
+          </SimpleGrid>
 
-      <AlertDialog
+          {/* Desktop Table View */}
+          <DataTable data={personas} columns={columns} />
+        </>
+      )}
+
+      <ConfirmDialog
         isOpen={isOpen}
-        leastDestructiveRef={cancelRef}
         onClose={onClose}
-      >
-        <AlertDialogOverlay>
-          <AlertDialogContent bg="gray.800" borderColor="gray.700">
-            <AlertDialogHeader fontSize="lg" fontWeight="bold" color="white">
-              Eliminar Persona
-            </AlertDialogHeader>
+        onConfirm={confirmDelete}
+        title="Eliminar Persona"
+        message="¿Estás seguro de que deseas eliminar esta persona? Esta acción no se puede deshacer."
+        cancelRef={cancelRef}
+      />
 
-            <AlertDialogBody color="gray.300">
-              ¿Estás seguro de que deseas eliminar esta persona? Esta acción no
-              se puede deshacer.
-            </AlertDialogBody>
-
-            <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={onClose}>
-                Cancelar
-              </Button>
-              <Button colorScheme="red" onClick={confirmDelete} ml={3}>
-                Eliminar
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
+      <ConfirmDialog
+        isOpen={isDeactivateOpen}
+        onClose={onDeactivateClose}
+        onConfirm={confirmDeactivate}
+        title="Desactivar Persona"
+        message="¿Estás seguro de que deseas desactivar esta persona?"
+        confirmLabel="Desactivar"
+        cancelRef={deactivateCancelRef}
+      />
     </Box>
   );
 };
