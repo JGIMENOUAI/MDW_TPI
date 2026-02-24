@@ -28,7 +28,6 @@ const InmuebleForm = () => {
     tipo: "casa",
     descripcion: "",
     ubicacion: "",
-    hectareas: 0,
   });
 
   useEffect(() => {
@@ -44,7 +43,7 @@ const InmuebleForm = () => {
         tipo: data.tipo,
         descripcion: data.descripcion,
         ubicacion: data.ubicacion,
-        hectareas: data.hectareas,
+        ...(data.hectareas !== undefined && { hectareas: data.hectareas }),
       });
       setError(null);
     } catch (err: any) {
@@ -173,14 +172,14 @@ const InmuebleForm = () => {
           </FormControl>
 
           <FormControl>
-            <FormLabel color="gray.300">Hectáreas</FormLabel>
+            <FormLabel color="gray.300">Hectáreas (opcional)</FormLabel>
             <NumberInput
               min={0}
-              value={formData.hectareas}
+              value={formData.hectareas ?? ""}
               onChange={(valueString) =>
                 setFormData({
                   ...formData,
-                  hectareas: parseFloat(valueString) || 0,
+                  hectareas: valueString ? parseFloat(valueString) : undefined,
                 })
               }
             >
