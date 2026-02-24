@@ -11,6 +11,7 @@ import InmueblesList from "./pages/InmueblesList";
 import Login from "./pages/Login";
 import PersonaForm from "./pages/PersonaForm";
 import PersonasList from "./pages/PersonasList";
+import PublicContratos from "./pages/PublicContratos";
 import Register from "./pages/Register";
 
 function App() {
@@ -19,10 +20,14 @@ function App() {
       <AuthProvider>
         <Layout>
           <Routes>
+            {/* Rutas públicas */}
+            <Route path="/" element={<PublicContratos />} />
             <Route path="/login" element={<Login />} />
             <Route path="/registro" element={<Register />} />
+
+            {/* Rutas protegidas */}
             <Route
-              path="/"
+              path="/dashboard"
               element={
                 <ProtectedRoute>
                   <Home />

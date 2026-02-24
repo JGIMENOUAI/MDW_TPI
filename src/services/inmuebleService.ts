@@ -1,9 +1,9 @@
-import type { Inmueble } from '../types';
-import axiosInstance from './axiosConfig';
+import type { Inmueble } from "../types";
+import axiosInstance from "./axiosConfig";
 
 export const inmuebleService = {
   getAll: async (): Promise<Inmueble[]> => {
-    const response = await axiosInstance.get('/inmuebles');
+    const response = await axiosInstance.get("/inmuebles");
     return response.data;
   },
 
@@ -12,17 +12,25 @@ export const inmuebleService = {
     return response.data;
   },
 
-  create: async (inmueble: Omit<Inmueble, '_id'>): Promise<Inmueble> => {
-    const response = await axiosInstance.post('/inmuebles', inmueble);
+  create: async (inmueble: Omit<Inmueble, "_id">): Promise<Inmueble> => {
+    const response = await axiosInstance.post("/inmuebles", inmueble);
     return response.data;
   },
 
-  update: async (id: string, inmueble: Partial<Inmueble>): Promise<Inmueble> => {
+  update: async (
+    id: string,
+    inmueble: Partial<Inmueble>,
+  ): Promise<Inmueble> => {
     const response = await axiosInstance.put(`/inmuebles/${id}`, inmueble);
     return response.data;
   },
 
   delete: async (id: string): Promise<void> => {
     await axiosInstance.delete(`/inmuebles/${id}`);
+  },
+
+  desactivar: async (id: string): Promise<Inmueble> => {
+    const response = await axiosInstance.patch(`/inmuebles/${id}/desactivar`);
+    return response.data;
   },
 };

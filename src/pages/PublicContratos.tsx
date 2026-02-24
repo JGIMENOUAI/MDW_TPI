@@ -1,11 +1,5 @@
 import {
   Alert,
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogOverlay,
   AlertIcon,
   Badge,
   Box,
@@ -20,20 +14,16 @@ import {
   Th,
   Thead,
   Tr,
-  useDisclosure,
 } from "@chakra-ui/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { contratoService } from "../services/contratoService";
 import type { Contrato } from "../types";
 
-const ContratosList = () => {
+const PublicContratos = () => {
   const [contratos, setContratos] = useState<Contrato[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [contratoToDelete, setContratoToDelete] = useState<string | null>(null);
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const cancelRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     loadContratos();
@@ -45,9 +35,9 @@ const ContratosList = () => {
       const data = await contratoService.getAll();
       setContratos(data);
       setError(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       const errorMessage =
-        err.response?.data?.mensaje || "Error al cargar los contratos";
+        (err as any).response?.data?.mensaje || "Error al cargar los contratos";
       setError(errorMessage);
       console.error(err);
     } finally {
@@ -55,37 +45,21 @@ const ContratosList = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    setContratoToDelete(id);
-    onOpen();
-  };
-
-  const confirmDelete = async () => {
-    if (!contratoToDelete) return;
-
-    try {
-      await contratoService.delete(contratoToDelete);
-      loadContratos();
-      onClose();
-    } catch (err: unknown) {
-      const errorMessage =
-        (err as any).response?.data?.mensaje || "Error al eliminar el contrato";
-      alert(errorMessage);
-      console.error(err);
-    }
-  };
-
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString("es-AR");
   };
 
-  const getPersonaName = (persona: any): string => {
-    if (typeof persona === "string") return persona;
+  const getPersonaName = (
+    persona: string | { nombreCompleto?: string },
+  ): string => {
+    if (typeof persona === "string") return "N/A";
     return persona?.nombreCompleto || "N/A";
   };
 
-  const getInmuebleDesc = (inmueble: any): string => {
-    if (typeof inmueble === "string") return inmueble;
+  const getInmuebleDesc = (
+    inmueble: string | { descripcion?: string },
+  ): string => {
+    if (typeof inmueble === "string") return "N/A";
     return inmueble?.descripcion || "N/A";
   };
 
@@ -113,12 +87,17 @@ const ContratosList = () => {
         mb={6}
         spacing={4}
       >
-        <Heading size="lg" color="white">
-          Contratos
-        </Heading>
-        <Link to="/contratos/nuevo">
+        <Box>
+          <Heading size="lg" color="white" mb={2}>
+            Contratos Disponibles
+          </Heading>
+          <Text color="gray.400" fontSize="sm">
+            Visualización pública de contratos registrados
+          </Text>
+        </Box>
+        <Link to="/login">
           <Button colorScheme="blue" w={{ base: "full", md: "auto" }}>
-            Nuevo Contrato
+            Iniciar Sesión
           </Button>
         </Link>
       </Stack>
@@ -145,7 +124,6 @@ const ContratosList = () => {
               <Th color="gray.400" display={{ base: "none", lg: "table-cell" }}>
                 Inicio
               </Th>
-              <Th color="gray.400">Acciones</Th>
             </Tr>
           </Thead>
           <Tbody>
@@ -187,27 +165,6 @@ const ContratosList = () => {
                 >
                   {formatDate(contrato.fechaInicio)}
                 </Td>
-                <Td>
-                  <Stack direction={{ base: "column", sm: "row" }} spacing={2}>
-                    <Link to={`/contratos/editar/${contrato._id}`}>
-                      <Button
-                        size="sm"
-                        colorScheme="yellow"
-                        w={{ base: "full", sm: "auto" }}
-                      >
-                        Editar
-                      </Button>
-                    </Link>
-                    <Button
-                      onClick={() => handleDelete(contrato._id!)}
-                      size="sm"
-                      colorScheme="red"
-                      w={{ base: "full", sm: "auto" }}
-                    >
-                      Eliminar
-                    </Button>
-                  </Stack>
-                </Td>
               </Tr>
             ))}
           </Tbody>
@@ -219,35 +176,25 @@ const ContratosList = () => {
         )}
       </Box>
 
-      <AlertDialog
-        isOpen={isOpen}
-        leastDestructiveRef={cancelRef}
-        onClose={onClose}
+      <Box
+        mt={6}
+        p={4}
+        bg="gray.800"
+        borderRadius="md"
+        border="1px"
+        borderColor="gray.700"
       >
-        <AlertDialogOverlay>
-          <AlertDialogContent bg="gray.800" borderColor="gray.700">
-            <AlertDialogHeader fontSize="lg" fontWeight="bold" color="white">
-              Eliminar Contrato
-            </AlertDialogHeader>
-
-            <AlertDialogBody color="gray.300">
-              ¿Estás seguro de que deseas eliminar este contrato? Esta acción no
-              se puede deshacer.
-            </AlertDialogBody>
-
-            <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={onClose}>
-                Cancelar
-              </Button>
-              <Button colorScheme="red" onClick={confirmDelete} ml={3}>
-                Eliminar
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
+        <Text color="gray.400" fontSize="sm" textAlign="center">
+          Para gestionar contratos, inmuebles y personas,{" "}
+          <Link to="/login">
+            <Text as="span" color="blue.400" textDecoration="underline">
+              inicia sesión
+            </Text>
+          </Link>
+        </Text>
+      </Box>
     </Box>
   );
 };
 
-export default ContratosList;
+export default PublicContratos;

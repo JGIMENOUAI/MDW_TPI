@@ -1,9 +1,9 @@
-import type { Persona } from '../types';
-import axiosInstance from './axiosConfig';
+import type { Persona } from "../types";
+import axiosInstance from "./axiosConfig";
 
 export const personaService = {
   getAll: async (): Promise<Persona[]> => {
-    const response = await axiosInstance.get('/personas');
+    const response = await axiosInstance.get("/personas");
     return response.data;
   },
 
@@ -12,8 +12,8 @@ export const personaService = {
     return response.data;
   },
 
-  create: async (persona: Omit<Persona, '_id'>): Promise<Persona> => {
-    const response = await axiosInstance.post('/personas', persona);
+  create: async (persona: Omit<Persona, "_id">): Promise<Persona> => {
+    const response = await axiosInstance.post("/personas", persona);
     return response.data;
   },
 
@@ -24,5 +24,10 @@ export const personaService = {
 
   delete: async (id: string): Promise<void> => {
     await axiosInstance.delete(`/personas/${id}`);
+  },
+
+  desactivar: async (id: string): Promise<Persona> => {
+    const response = await axiosInstance.patch(`/personas/${id}/desactivar`);
+    return response.data;
   },
 };

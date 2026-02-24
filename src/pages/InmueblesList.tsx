@@ -1,5 +1,11 @@
 import {
   Alert,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogOverlay,
   AlertIcon,
   Badge,
   Box,
@@ -13,8 +19,9 @@ import {
   Th,
   Thead,
   Tr,
+  useDisclosure,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { inmuebleService } from "../services/inmuebleService";
 import type { Inmueble } from "../types";
@@ -23,6 +30,9 @@ const InmueblesList = () => {
   const [inmuebles, setInmuebles] = useState<Inmueble[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [inmuebleToDelete, setInmuebleToDelete] = useState<string | null>(null);
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const cancelRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     loadInmuebles();
@@ -45,14 +55,33 @@ const InmueblesList = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm("¿Estás seguro de eliminar este inmueble?")) return;
+    setInmuebleToDelete(id);
+    onOpen();
+  };
+
+  const confirmDelete = async () => {
+    if (!inmuebleToDelete) return;
 
     try {
-      await inmuebleService.delete(id);
+      await inmuebleService.delete(inmuebleToDelete);
       loadInmuebles();
-    } catch (err: any) {
+      onClose();
+    } catch (err: unknown) {
       const errorMessage =
-        err.response?.data?.mensaje || "Error al eliminar el inmueble";
+        (err as any).response?.data?.mensaje || "Error al eliminar el inmueble";
+      alert(errorMessage);
+      console.error(err);
+    }
+  };
+
+  const handleDesactivar = async (id: string) => {
+    try {
+      await inmuebleService.desactivar(id);
+      loadInmuebles();
+    } catch (err: unknown) {
+      const errorMessage =
+        (err as any).response?.data?.mensaje ||
+        "Error al desactivar el inmueble";
       alert(errorMessage);
       console.error(err);
     }
@@ -149,6 +178,14 @@ const InmueblesList = () => {
                       </Button>
                     </Link>
                     <Button
+                      onClick={() => handleDesactivar(inmueble._id!)}
+                      size="sm"
+                      colorScheme="orange"
+                      w={{ base: "full", sm: "auto" }}
+                    >
+                      Desactivar
+                    </Button>
+                    <Button
                       onClick={() => handleDelete(inmueble._id!)}
                       size="sm"
                       colorScheme="red"
@@ -168,6 +205,34 @@ const InmueblesList = () => {
           </Box>
         )}
       </Box>
+
+      <AlertDialog
+        isOpen={isOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={onClose}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent bg="gray.800" borderColor="gray.700">
+            <AlertDialogHeader fontSize="lg" fontWeight="bold" color="white">
+              Eliminar Inmueble
+            </AlertDialogHeader>
+
+            <AlertDialogBody color="gray.300">
+              ¿Estás seguro de que deseas eliminar este inmueble? Esta acción no
+              se puede deshacer.
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onClose}>
+                Cancelar
+              </Button>
+              <Button colorScheme="red" onClick={confirmDelete} ml={3}>
+                Eliminar
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </Box>
   );
 };
