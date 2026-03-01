@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { authService } from "../services/authService";
 import type { User } from "../services/authService";
+import type { ReactNode } from "react";
 
 interface AuthContextType {
   user: User | null;
@@ -12,21 +13,23 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+// Función para obtener el usuario inicial
+function getInitialUser(): User | null {
+  const savedUser = authService.getUser();
+  const token = authService.getToken();
+  return savedUser && token ? savedUser : null;
+}
 
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(getInitialUser);
+  const [loading] = useState(false); // Ya no necesita cambiar
+
+  // Solo para iniciar el auto-refresh
   useEffect(() => {
-    // Verificar si hay un usuario guardado en sessionStorage
-    const savedUser = authService.getUser();
-    const token = authService.getToken();
-
-    if (savedUser && token) {
-      setUser(savedUser);
-      authService.startAutoRefresh(); // ← Iniciar refresh si ya hay sesión
+    if (user) {
+      authService.startAutoRefresh();
     }
-    setLoading(false);
-  }, []);
+  }, [user]);
 
   const login = async (email: string, password: string) => {
     const response = await authService.login(email, password);
@@ -65,12 +68,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
-export const useAuth = () => {
+// eslint-disable-next-line react-refresh/only-export-components
+export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error("useAuth debe ser usado dentro de un AuthProvider");
   }
   return context;
-};
+}
