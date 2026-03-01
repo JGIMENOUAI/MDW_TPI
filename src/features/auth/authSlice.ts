@@ -29,7 +29,7 @@ const initialState: AuthState = {
 
 // Async Thunks
 export const loginUser = createAsyncThunk(
-  "auth/login",
+  "usuarios/login",
   async (
     { email, password }: { email: string; password: string },
     { rejectWithValue },
@@ -41,10 +41,14 @@ export const loginUser = createAsyncThunk(
         email: response.email,
       };
 
-      authService.setToken(response.idToken);
+      authService.setToken(response.token); // ← Cambiado de idToken a token
+      if (response.refreshToken) {
+        authService.setRefreshToken(response.refreshToken); // ← Agregar esto
+      }
       authService.setUser(userData);
+      authService.startAutoRefresh(); // ← Agregar esto
 
-      return { user: userData, token: response.idToken };
+      return { user: userData, token: response.token }; // ← Cambiado de idToken a token
     } catch (error: unknown) {
       const err = error as { response?: { data?: { mensaje?: string } } };
       return rejectWithValue(
@@ -55,7 +59,7 @@ export const loginUser = createAsyncThunk(
 );
 
 export const registerUser = createAsyncThunk(
-  "auth/register",
+  "usuarios/register",
   async (
     {
       email,
@@ -72,10 +76,14 @@ export const registerUser = createAsyncThunk(
         nombre: response.nombre || nombre,
       };
 
-      authService.setToken(response.idToken);
+      authService.setToken(response.token); // ← Cambiado de idToken a token
+      if (response.refreshToken) {
+        authService.setRefreshToken(response.refreshToken); // ← Agregar esto
+      }
       authService.setUser(userData);
+      authService.startAutoRefresh(); // ← Agregar esto
 
-      return { user: userData, token: response.idToken };
+      return { user: userData, token: response.token }; // ← Cambiado de idToken a token
     } catch (error: unknown) {
       const err = error as { response?: { data?: { mensaje?: string } } };
       return rejectWithValue(
@@ -85,12 +93,12 @@ export const registerUser = createAsyncThunk(
   },
 );
 
-export const logoutUser = createAsyncThunk("auth/logout", async () => {
+export const logoutUser = createAsyncThunk("usuarios/logout", async () => {
   authService.logout();
 });
 
 const authSlice = createSlice({
-  name: "auth",
+  name: "usuarios",
   initialState,
   reducers: {
     clearError: (state) => {

@@ -1,0 +1,1735 @@
+================================================================================
+ESTRUCTURA DEL PROYECTO MDW_TPI - SISTEMA DE BIBLIOTECA
+================================================================================
+
+MDW_TPI/
+├── .github/
+│   └── copilot-instructions.md
+├── backend/
+│   ├── src/
+│   │   ├── app.ts
+│   │   ├── config/
+│   │   │   └── db.ts
+│   │   ├── entities/
+│   │   │   ├── Author.entity.ts
+│   │   │   ├── Book.entity.ts
+│   │   │   ├── Loan.entity.ts
+│   │   │   ├── Member.entity.ts
+│   │   │   └── MembershipType.entity.ts
+│   │   ├── middlewares/
+│   │   │   └── validateDto.middleware.ts
+│   │   ├── modules/
+│   │   │   ├── author/
+│   │   │   │   ├── author.controller.ts
+│   │   │   │   ├── author.dto.ts
+│   │   │   │   ├── author.routes.ts
+│   │   │   │   └── author.service.ts
+│   │   │   ├── book/
+│   │   │   │   ├── book.controller.ts
+│   │   │   │   ├── book.dto.ts
+│   │   │   │   ├── book.routes.ts
+│   │   │   │   └── book.service.ts
+│   │   │   ├── loan/
+│   │   │   │   ├── loan.controller.ts
+│   │   │   │   ├── loan.dto.ts
+│   │   │   │   ├── loan.routes.ts
+│   │   │   │   └── loan.service.ts
+│   │   │   ├── member/
+│   │   │   │   ├── member.controller.ts
+│   │   │   │   ├── member.dto.ts
+│   │   │   │   ├── member.routes.ts
+│   │   │   │   └── member.service.ts
+│   │   │   └── membershipType/
+│   │   │       ├── membershipType.controller.ts
+│   │   │       ├── membershipType.dto.ts
+│   │   │       ├── membershipType.routes.ts
+│   │   │       └── membershipType.service.ts
+│   │   ├── routes/
+│   │   │   └── index.ts
+│   │   └── shared/
+│   │       └── db/
+│   │           └── baseEntity.ts
+│   ├── .env
+│   ├── package.json
+│   └── tsconfig.json
+├── frontend/
+│   ├── public/
+│   │   └── vite.svg
+│   ├── src/
+│   │   ├── api/
+│   │   │   ├── authors.ts
+│   │   │   ├── axiosConfig.ts
+│   │   │   ├── books.ts
+│   │   │   ├── loans.ts
+│   │   │   ├── members.ts
+│   │   │   └── membershipTypes.ts
+│   │   ├── components/
+│   │   │   ├── Authors/
+│   │   │   │   ├── AuthorForm.tsx
+│   │   │   │   └── AuthorList.tsx
+│   │   │   ├── Books/
+│   │   │   │   ├── BookForm.tsx
+│   │   │   │   └── BookList.tsx
+│   │   │   ├── common/
+│   │   │   │   └── ConfirmDialog.tsx
+│   │   │   ├── Layout/
+│   │   │   │   ├── AppLayout.tsx
+│   │   │   │   └── Navbar.tsx
+│   │   │   ├── Loans/
+│   │   │   │   ├── LoanForm.tsx
+│   │   │   │   └── LoanList.tsx
+│   │   │   ├── Members/
+│   │   │   │   ├── MemberForm.tsx
+│   │   │   │   └── MemberList.tsx
+│   │   │   └── MembershipTypes/
+│   │   │       ├── MembershipTypeForm.tsx
+│   │   │       └── MembershipTypeList.tsx
+│   │   ├── hooks/
+│   │   │   └── useConfirmDialog.ts
+│   │   ├── pages/
+│   │   │   ├── Authors/
+│   │   │   │   ├── AuthorCreatePage.tsx
+│   │   │   │   ├── AuthorEditPage.tsx
+│   │   │   │   └── AuthorsPage.tsx
+│   │   │   ├── Books/
+│   │   │   │   ├── BookCreatePage.tsx
+│   │   │   │   ├── BookEditPage.tsx
+│   │   │   │   └── BooksPage.tsx
+│   │   │   ├── Home/
+│   │   │   │   └── HomePage.tsx
+│   │   │   ├── Loans/
+│   │   │   │   ├── LoanCreatePage.tsx
+│   │   │   │   ├── LoanEditPage.tsx
+│   │   │   │   └── LoansPage.tsx
+│   │   │   ├── Members/
+│   │   │   │   ├── MemberCreatePage.tsx
+│   │   │   │   ├── MemberEditPage.tsx
+│   │   │   │   └── MembersPage.tsx
+│   │   │   └── MembershipTypes/
+│   │   │       ├── MembershipTypeCreatePage.tsx
+│   │   │       ├── MembershipTypeEditPage.tsx
+│   │   │       └── MembershipTypesPage.tsx
+│   │   ├── types/
+│   │   │   └── index.ts
+│   │   ├── App.css
+│   │   ├── App.tsx
+│   │   ├── index.css
+│   │   ├── main.tsx
+│   │   └── vite-env.d.ts
+│   ├── index.html
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── vite.config.ts
+└── README.md
+
+================================================================================
+BACKEND - ARCHIVOS DE CONFIGURACIÓN
+================================================================================
+
+--- backend/.env ---
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASS=
+DB_NAME=library
+
+--- backend/package.json ---
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/app.js",
+    "dev": "ts-node-dev --respawn src/app.ts"
+  },
+  "dependencies": {
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "mysql2": "^3.14.1",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.21"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.2",
+    "@types/node": "^22.15.29",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.8.3"
+  }
+}
+
+--- backend/tsconfig.json ---
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  },
+  "include": ["src/**/*"]
+}
+
+================================================================================
+BACKEND - SRC
+================================================================================
+
+--- backend/src/app.ts ---
+import 'reflect-metadata';
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { initializeDatabase } from './config/db';
+import routes from './routes';
+
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(cors());
+app.use(express.json());
+app.use('/api', routes);
+
+initializeDatabase()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error('Error initializing database:', error);
+    process.exit(1);
+  });
+
+--- backend/src/config/db.ts ---
+import { DataSource } from "typeorm";
+import { Author } from "../entities/Author.entity";
+import { Book } from "../entities/Book.entity";
+import { Member } from "../entities/Member.entity";
+import { MembershipType } from "../entities/MembershipType.entity";
+import { Loan } from "../entities/Loan.entity";
+
+export const AppDataSource = new DataSource({
+  type: "mysql",
+  host: process.env.DB_HOST || "localhost",
+  port: parseInt(process.env.DB_PORT || "3306"),
+  username: process.env.DB_USER || "root",
+  password: process.env.DB_PASS || "",
+  database: process.env.DB_NAME || "library",
+  synchronize: true,
+  logging: false,
+  entities: [Author, Book, Member, MembershipType, Loan],
+});
+
+export const initializeDatabase = async () => {
+  try {
+    await AppDataSource.initialize();
+    console.log("Database connection established successfully");
+  } catch (error) {
+    console.error("Error connecting to database:", error);
+    throw error;
+  }
+};
+
+--- backend/src/shared/db/baseEntity.ts ---
+import { PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm';
+
+export abstract class BaseEntity {
+  @PrimaryGeneratedColumn()
+  id!: number;
+
+  @CreateDateColumn()
+  createdAt!: Date;
+
+  @UpdateDateColumn()
+  updatedAt!: Date;
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
+}
+
+--- backend/src/routes/index.ts ---
+import { Router } from 'express';
+import authorRoutes from '../modules/author/author.routes';
+import bookRoutes from '../modules/book/book.routes';
+import memberRoutes from '../modules/member/member.routes';
+import membershipTypeRoutes from '../modules/membershipType/membershipType.routes';
+import loanRoutes from '../modules/loan/loan.routes';
+
+const router = Router();
+
+router.use('/authors', authorRoutes);
+router.use('/books', bookRoutes);
+router.use('/members', memberRoutes);
+router.use('/membership-types', membershipTypeRoutes);
+router.use('/loans', loanRoutes);
+
+export default router;
+
+--- backend/src/middlewares/validateDto.middleware.ts ---
+import { Request, Response, NextFunction } from 'express';
+import { plainToInstance } from 'class-transformer';
+import { validate, ValidationError } from 'class-validator';
+
+export function validateDto<T extends object>(dtoClass: new () => T) {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const dtoInstance = plainToInstance(dtoClass, req.body);
+    const errors: ValidationError[] = await validate(dtoInstance);
+
+    if (errors.length > 0) {
+      const errorMessages = errors.map((error) => {
+        const constraints = error.constraints;
+        return constraints ? Object.values(constraints).join(', ') : 'Validation error';
+      });
+
+      res.status(400).json({
+        message: 'Validation failed',
+        errors: errorMessages,
+      });
+      return;
+    }
+
+    req.body = dtoInstance;
+    next();
+  };
+}
+
+================================================================================
+BACKEND - ENTITIES
+================================================================================
+
+--- backend/src/entities/Author.entity.ts ---
+import { Entity, Column, OneToMany } from "typeorm";
+import { BaseEntity } from "../shared/db/baseEntity";
+import { Book } from "./Book.entity";
+
+@Entity("authors")
+export class Author extends BaseEntity {
+  @Column({ length: 100 })
+  firstName!: string;
+
+  @Column({ length: 100 })
+  lastName!: string;
+
+  @Column({ type: "text", nullable: true })
+  biography?: string;
+
+  @OneToMany(() => Book, (book) => book.author)
+  books!: Book[];
+}
+
+--- backend/src/entities/Book.entity.ts ---
+import { Entity, Column, ManyToOne, OneToMany, JoinColumn } from "typeorm";
+import { BaseEntity } from "../shared/db/baseEntity";
+import { Author } from "./Author.entity";
+import { Loan } from "./Loan.entity";
+
+@Entity("books")
+export class Book extends BaseEntity {
+  @Column({ length: 200 })
+  title!: string;
+
+  @Column({ length: 13, unique: true })
+  isbn!: string;
+
+  @Column({ type: "int" })
+  publishedYear!: number;
+
+  @Column({ length: 100 })
+  genre!: string;
+
+  @Column({ type: "int", default: 1 })
+  copiesAvailable!: number;
+
+  @ManyToOne(() => Author, (author) => author.books, { eager: true })
+  @JoinColumn({ name: "authorId" })
+  author!: Author;
+
+  @Column()
+  authorId!: number;
+
+  @OneToMany(() => Loan, (loan) => loan.book)
+  loans!: Loan[];
+}
+
+--- backend/src/entities/MembershipType.entity.ts ---
+import { Entity, Column, OneToMany } from "typeorm";
+import { BaseEntity } from "../shared/db/baseEntity";
+import { Member } from "./Member.entity";
+
+@Entity("membership_types")
+export class MembershipType extends BaseEntity {
+  @Column({ length: 50, unique: true })
+  name!: string;
+
+  @Column({ type: "text", nullable: true })
+  description?: string;
+
+  @Column({ type: "int" })
+  maxBooks!: number;
+
+  @Column({ type: "int" })
+  loanDurationDays!: number;
+
+  @Column({ type: "decimal", precision: 10, scale: 2, default: 0 })
+  monthlyFee!: number;
+
+  @OneToMany(() => Member, (member) => member.membershipType)
+  members!: Member[];
+}
+
+--- backend/src/entities/Member.entity.ts ---
+import { Entity, Column, ManyToOne, OneToMany, JoinColumn } from "typeorm";
+import { BaseEntity } from "../shared/db/baseEntity";
+import { MembershipType } from "./MembershipType.entity";
+import { Loan } from "./Loan.entity";
+
+@Entity("members")
+export class Member extends BaseEntity {
+  @Column({ length: 100 })
+  firstName!: string;
+
+  @Column({ length: 100 })
+  lastName!: string;
+
+  @Column({ length: 150, unique: true })
+  email!: string;
+
+  @Column({ length: 20, nullable: true })
+  phone?: string;
+
+  @Column({ type: "text", nullable: true })
+  address?: string;
+
+  @Column({ type: "date" })
+  membershipStartDate!: Date;
+
+  @Column({ type: "date", nullable: true })
+  membershipEndDate?: Date;
+
+  @ManyToOne(() => MembershipType, (membershipType) => membershipType.members, { eager: true })
+  @JoinColumn({ name: "membershipTypeId" })
+  membershipType!: MembershipType;
+
+  @Column()
+  membershipTypeId!: number;
+
+  @OneToMany(() => Loan, (loan) => loan.member)
+  loans!: Loan[];
+}
+
+--- backend/src/entities/Loan.entity.ts ---
+import { Entity, Column, ManyToOne, JoinColumn } from "typeorm";
+import { BaseEntity } from "../shared/db/baseEntity";
+import { Book } from "./Book.entity";
+import { Member } from "./Member.entity";
+
+export enum LoanStatus {
+  ACTIVE = "active",
+  RETURNED = "returned",
+  OVERDUE = "overdue",
+}
+
+@Entity("loans")
+export class Loan extends BaseEntity {
+  @Column({ type: "date" })
+  loanDate!: Date;
+
+  @Column({ type: "date" })
+  dueDate!: Date;
+
+  @Column({ type: "date", nullable: true })
+  returnDate?: Date;
+
+  @Column({ type: "enum", enum: LoanStatus, default: LoanStatus.ACTIVE })
+  status!: LoanStatus;
+
+  @ManyToOne(() => Book, (book) => book.loans, { eager: true })
+  @JoinColumn({ name: "bookId" })
+  book!: Book;
+
+  @Column()
+  bookId!: number;
+
+  @ManyToOne(() => Member, (member) => member.loans, { eager: true })
+  @JoinColumn({ name: "memberId" })
+  member!: Member;
+
+  @Column()
+  memberId!: number;
+}
+
+================================================================================
+BACKEND - MODULES (Author, Book, Member, MembershipType, Loan)
+================================================================================
+
+--- backend/src/modules/author/author.dto.ts ---
+import { IsNotEmpty, IsOptional, IsString, MaxLength } from "class-validator";
+
+export class CreateAuthorDto {
+  @IsNotEmpty() @IsString() @MaxLength(100)
+  firstName!: string;
+
+  @IsNotEmpty() @IsString() @MaxLength(100)
+  lastName!: string;
+
+  @IsOptional() @IsString()
+  biography?: string;
+}
+
+export class UpdateAuthorDto {
+  @IsOptional() @IsString() @MaxLength(100)
+  firstName?: string;
+
+  @IsOptional() @IsString() @MaxLength(100)
+  lastName?: string;
+
+  @IsOptional() @IsString()
+  biography?: string;
+}
+
+--- backend/src/modules/author/author.service.ts ---
+import { AppDataSource } from "../../config/db";
+import { Author } from "../../entities/Author.entity";
+import { CreateAuthorDto, UpdateAuthorDto } from "./author.dto";
+
+export class AuthorService {
+  private authorRepository = AppDataSource.getRepository(Author);
+
+  async findAll(): Promise<Author[]> {
+    return this.authorRepository.find({ relations: ["books"] });
+  }
+
+  async findOne(id: number): Promise<Author | null> {
+    return this.authorRepository.findOne({ where: { id }, relations: ["books"] });
+  }
+
+  async create(data: CreateAuthorDto): Promise<Author> {
+    const author = this.authorRepository.create(data);
+    return this.authorRepository.save(author);
+  }
+
+  async update(id: number, data: UpdateAuthorDto): Promise<Author | null> {
+    const author = await this.findOne(id);
+    if (!author) return null;
+    Object.assign(author, data);
+    return this.authorRepository.save(author);
+  }
+
+  async delete(id: number): Promise<boolean> {
+    const author = await this.findOne(id);
+    if (!author) return false;
+    await this.authorRepository.softDelete(id);
+    return true;
+  }
+}
+
+--- backend/src/modules/author/author.controller.ts ---
+import { Request, Response } from "express";
+import { AuthorService } from "./author.service";
+
+const authorService = new AuthorService();
+
+export class AuthorController {
+  async findAll(req: Request, res: Response): Promise<void> {
+    try {
+      const authors = await authorService.findAll();
+      res.json(authors);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching authors", error });
+    }
+  }
+
+  async findOne(req: Request, res: Response): Promise<void> {
+    try {
+      const id = parseInt(req.params.id);
+      const author = await authorService.findOne(id);
+      if (!author) { res.status(404).json({ message: "Author not found" }); return; }
+      res.json(author);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching author", error });
+    }
+  }
+
+  async create(req: Request, res: Response): Promise<void> {
+    try {
+      const author = await authorService.create(req.body);
+      res.status(201).json(author);
+    } catch (error) {
+      res.status(500).json({ message: "Error creating author", error });
+    }
+  }
+
+  async update(req: Request, res: Response): Promise<void> {
+    try {
+      const id = parseInt(req.params.id);
+      const author = await authorService.update(id, req.body);
+      if (!author) { res.status(404).json({ message: "Author not found" }); return; }
+      res.json(author);
+    } catch (error) {
+      res.status(500).json({ message: "Error updating author", error });
+    }
+  }
+
+  async delete(req: Request, res: Response): Promise<void> {
+    try {
+      const id = parseInt(req.params.id);
+      const result = await authorService.delete(id);
+      if (!result) { res.status(404).json({ message: "Author not found" }); return; }
+      res.json({ message: "Author deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Error deleting author", error });
+    }
+  }
+}
+
+--- backend/src/modules/author/author.routes.ts ---
+import { Router } from "express";
+import { AuthorController } from "./author.controller";
+import { validateDto } from "../../middlewares/validateDto.middleware";
+import { CreateAuthorDto, UpdateAuthorDto } from "./author.dto";
+
+const router = Router();
+const authorController = new AuthorController();
+
+router.get("/", authorController.findAll);
+router.get("/:id", authorController.findOne);
+router.post("/", validateDto(CreateAuthorDto), authorController.create);
+router.put("/:id", validateDto(UpdateAuthorDto), authorController.update);
+router.delete("/:id", authorController.delete);
+
+export default router;
+
+--- backend/src/modules/book/book.dto.ts ---
+import { IsNotEmpty, IsOptional, IsString, IsInt, IsPositive, MaxLength, Min, Max } from "class-validator";
+
+export class CreateBookDto {
+  @IsNotEmpty() @IsString() @MaxLength(200)
+  title!: string;
+
+  @IsNotEmpty() @IsString() @MaxLength(13)
+  isbn!: string;
+
+  @IsNotEmpty() @IsInt() @Min(1000) @Max(new Date().getFullYear())
+  publishedYear!: number;
+
+  @IsNotEmpty() @IsString() @MaxLength(100)
+  genre!: string;
+
+  @IsOptional() @IsInt() @IsPositive()
+  copiesAvailable?: number;
+
+  @IsNotEmpty() @IsInt() @IsPositive()
+  authorId!: number;
+}
+
+export class UpdateBookDto {
+  @IsOptional() @IsString() @MaxLength(200)
+  title?: string;
+
+  @IsOptional() @IsString() @MaxLength(13)
+  isbn?: string;
+
+  @IsOptional() @IsInt() @Min(1000) @Max(new Date().getFullYear())
+  publishedYear?: number;
+
+  @IsOptional() @IsString() @MaxLength(100)
+  genre?: string;
+
+  @IsOptional() @IsInt() @IsPositive()
+  copiesAvailable?: number;
+
+  @IsOptional() @IsInt() @IsPositive()
+  authorId?: number;
+}
+
+--- backend/src/modules/book/book.service.ts ---
+import { AppDataSource } from "../../config/db";
+import { Book } from "../../entities/Book.entity";
+import { CreateBookDto, UpdateBookDto } from "./book.dto";
+
+export class BookService {
+  private bookRepository = AppDataSource.getRepository(Book);
+
+  async findAll(): Promise<Book[]> {
+    return this.bookRepository.find({ relations: ["author"] });
+  }
+
+  async findOne(id: number): Promise<Book | null> {
+    return this.bookRepository.findOne({ where: { id }, relations: ["author"] });
+  }
+
+  async create(data: CreateBookDto): Promise<Book> {
+    const book = this.bookRepository.create(data);
+    return this.bookRepository.save(book);
+  }
+
+  async update(id: number, data: UpdateBookDto): Promise<Book | null> {
+    const book = await this.findOne(id);
+    if (!book) return null;
+    Object.assign(book, data);
+    return this.bookRepository.save(book);
+  }
+
+  async delete(id: number): Promise<boolean> {
+    const book = await this.findOne(id);
+    if (!book) return false;
+    await this.bookRepository.softDelete(id);
+    return true;
+  }
+}
+
+--- backend/src/modules/book/book.controller.ts ---
+import { Request, Response } from "express";
+import { BookService } from "./book.service";
+
+const bookService = new BookService();
+
+export class BookController {
+  async findAll(req: Request, res: Response): Promise<void> {
+    try {
+      const books = await bookService.findAll();
+      res.json(books);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching books", error });
+    }
+  }
+
+  async findOne(req: Request, res: Response): Promise<void> {
+    try {
+      const id = parseInt(req.params.id);
+      const book = await bookService.findOne(id);
+      if (!book) { res.status(404).json({ message: "Book not found" }); return; }
+      res.json(book);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching book", error });
+    }
+  }
+
+  async create(req: Request, res: Response): Promise<void> {
+    try {
+      const book = await bookService.create(req.body);
+      res.status(201).json(book);
+    } catch (error) {
+      res.status(500).json({ message: "Error creating book", error });
+    }
+  }
+
+  async update(req: Request, res: Response): Promise<void> {
+    try {
+      const id = parseInt(req.params.id);
+      const book = await bookService.update(id, req.body);
+      if (!book) { res.status(404).json({ message: "Book not found" }); return; }
+      res.json(book);
+    } catch (error) {
+      res.status(500).json({ message: "Error updating book", error });
+    }
+  }
+
+  async delete(req: Request, res: Response): Promise<void> {
+    try {
+      const id = parseInt(req.params.id);
+      const result = await bookService.delete(id);
+      if (!result) { res.status(404).json({ message: "Book not found" }); return; }
+      res.json({ message: "Book deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Error deleting book", error });
+    }
+  }
+}
+
+--- backend/src/modules/book/book.routes.ts ---
+import { Router } from "express";
+import { BookController } from "./book.controller";
+import { validateDto } from "../../middlewares/validateDto.middleware";
+import { CreateBookDto, UpdateBookDto } from "./book.dto";
+
+const router = Router();
+const bookController = new BookController();
+
+router.get("/", bookController.findAll);
+router.get("/:id", bookController.findOne);
+router.post("/", validateDto(CreateBookDto), bookController.create);
+router.put("/:id", validateDto(UpdateBookDto), bookController.update);
+router.delete("/:id", bookController.delete);
+
+export default router;
+
+--- backend/src/modules/membershipType/membershipType.dto.ts ---
+import { IsNotEmpty, IsOptional, IsString, IsInt, IsPositive, IsNumber, MaxLength, Min } from "class-validator";
+
+export class CreateMembershipTypeDto {
+  @IsNotEmpty() @IsString() @MaxLength(50)
+  name!: string;
+
+  @IsOptional() @IsString()
+  description?: string;
+
+  @IsNotEmpty() @IsInt() @IsPositive()
+  maxBooks!: number;
+
+  @IsNotEmpty() @IsInt() @IsPositive()
+  loanDurationDays!: number;
+
+  @IsOptional() @IsNumber() @Min(0)
+  monthlyFee?: number;
+}
+
+export class UpdateMembershipTypeDto {
+  @IsOptional() @IsString() @MaxLength(50)
+  name?: string;
+
+  @IsOptional() @IsString()
+  description?: string;
+
+  @IsOptional() @IsInt() @IsPositive()
+  maxBooks?: number;
+
+  @IsOptional() @IsInt() @IsPositive()
+  loanDurationDays?: number;
+
+  @IsOptional() @IsNumber() @Min(0)
+  monthlyFee?: number;
+}
+
+--- backend/src/modules/membershipType/membershipType.service.ts ---
+import { AppDataSource } from "../../config/db";
+import { MembershipType } from "../../entities/MembershipType.entity";
+import { CreateMembershipTypeDto, UpdateMembershipTypeDto } from "./membershipType.dto";
+
+export class MembershipTypeService {
+  private membershipTypeRepository = AppDataSource.getRepository(MembershipType);
+
+  async findAll(): Promise<MembershipType[]> {
+    return this.membershipTypeRepository.find();
+  }
+
+  async findOne(id: number): Promise<MembershipType | null> {
+    return this.membershipTypeRepository.findOne({ where: { id } });
+  }
+
+  async create(data: CreateMembershipTypeDto): Promise<MembershipType> {
+    const membershipType = this.membershipTypeRepository.create(data);
+    return this.membershipTypeRepository.save(membershipType);
+  }
+
+  async update(id: number, data: UpdateMembershipTypeDto): Promise<MembershipType | null> {
+    const membershipType = await this.findOne(id);
+    if (!membershipType) return null;
+    Object.assign(membershipType, data);
+    return this.membershipTypeRepository.save(membershipType);
+  }
+
+  async delete(id: number): Promise<boolean> {
+    const membershipType = await this.findOne(id);
+    if (!membershipType) return false;
+    await this.membershipTypeRepository.softDelete(id);
+    return true;
+  }
+}
+
+--- backend/src/modules/membershipType/membershipType.controller.ts ---
+import { Request, Response } from "express";
+import { MembershipTypeService } from "./membershipType.service";
+
+const membershipTypeService = new MembershipTypeService();
+
+export class MembershipTypeController {
+  async findAll(req: Request, res: Response): Promise<void> {
+    try {
+      const membershipTypes = await membershipTypeService.findAll();
+      res.json(membershipTypes);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching membership types", error });
+    }
+  }
+
+  async findOne(req: Request, res: Response): Promise<void> {
+    try {
+      const id = parseInt(req.params.id);
+      const membershipType = await membershipTypeService.findOne(id);
+      if (!membershipType) { res.status(404).json({ message: "Membership type not found" }); return; }
+      res.json(membershipType);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching membership type", error });
+    }
+  }
+
+  async create(req: Request, res: Response): Promise<void> {
+    try {
+      const membershipType = await membershipTypeService.create(req.body);
+      res.status(201).json(membershipType);
+    } catch (error) {
+      res.status(500).json({ message: "Error creating membership type", error });
+    }
+  }
+
+  async update(req: Request, res: Response): Promise<void> {
+    try {
+      const id = parseInt(req.params.id);
+      const membershipType = await membershipTypeService.update(id, req.body);
+      if (!membershipType) { res.status(404).json({ message: "Membership type not found" }); return; }
+      res.json(membershipType);
+    } catch (error) {
+      res.status(500).json({ message: "Error updating membership type", error });
+    }
+  }
+
+  async delete(req: Request, res: Response): Promise<void> {
+    try {
+      const id = parseInt(req.params.id);
+      const result = await membershipTypeService.delete(id);
+      if (!result) { res.status(404).json({ message: "Membership type not found" }); return; }
+      res.json({ message: "Membership type deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Error deleting membership type", error });
+    }
+  }
+}
+
+--- backend/src/modules/membershipType/membershipType.routes.ts ---
+import { Router } from "express";
+import { MembershipTypeController } from "./membershipType.controller";
+import { validateDto } from "../../middlewares/validateDto.middleware";
+import { CreateMembershipTypeDto, UpdateMembershipTypeDto } from "./membershipType.dto";
+
+const router = Router();
+const membershipTypeController = new MembershipTypeController();
+
+router.get("/", membershipTypeController.findAll);
+router.get("/:id", membershipTypeController.findOne);
+router.post("/", validateDto(CreateMembershipTypeDto), membershipTypeController.create);
+router.put("/:id", validateDto(UpdateMembershipTypeDto), membershipTypeController.update);
+router.delete("/:id", membershipTypeController.delete);
+
+export default router;
+
+--- backend/src/modules/member/member.dto.ts ---
+import { IsNotEmpty, IsOptional, IsString, IsEmail, IsInt, IsPositive, IsDateString, MaxLength } from "class-validator";
+
+export class CreateMemberDto {
+  @IsNotEmpty() @IsString() @MaxLength(100)
+  firstName!: string;
+
+  @IsNotEmpty() @IsString() @MaxLength(100)
+  lastName!: string;
+
+  @IsNotEmpty() @IsEmail() @MaxLength(150)
+  email!: string;
+
+  @IsOptional() @IsString() @MaxLength(20)
+  phone?: string;
+
+  @IsOptional() @IsString()
+  address?: string;
+
+  @IsNotEmpty() @IsDateString()
+  membershipStartDate!: string;
+
+  @IsOptional() @IsDateString()
+  membershipEndDate?: string;
+
+  @IsNotEmpty() @IsInt() @IsPositive()
+  membershipTypeId!: number;
+}
+
+export class UpdateMemberDto {
+  @IsOptional() @IsString() @MaxLength(100)
+  firstName?: string;
+
+  @IsOptional() @IsString() @MaxLength(100)
+  lastName?: string;
+
+  @IsOptional() @IsEmail() @MaxLength(150)
+  email?: string;
+
+  @IsOptional() @IsString() @MaxLength(20)
+  phone?: string;
+
+  @IsOptional() @IsString()
+  address?: string;
+
+  @IsOptional() @IsDateString()
+  membershipStartDate?: string;
+
+  @IsOptional() @IsDateString()
+  membershipEndDate?: string;
+
+  @IsOptional() @IsInt() @IsPositive()
+  membershipTypeId?: number;
+}
+
+--- backend/src/modules/member/member.service.ts ---
+import { AppDataSource } from "../../config/db";
+import { Member } from "../../entities/Member.entity";
+import { CreateMemberDto, UpdateMemberDto } from "./member.dto";
+
+export class MemberService {
+  private memberRepository = AppDataSource.getRepository(Member);
+
+  async findAll(): Promise<Member[]> {
+    return this.memberRepository.find({ relations: ["membershipType"] });
+  }
+
+  async findOne(id: number): Promise<Member | null> {
+    return this.memberRepository.findOne({ where: { id }, relations: ["membershipType"] });
+  }
+
+  async create(data: CreateMemberDto): Promise<Member> {
+    const member = this.memberRepository.create(data);
+    return this.memberRepository.save(member);
+  }
+
+  async update(id: number, data: UpdateMemberDto): Promise<Member | null> {
+    const member = await this.findOne(id);
+    if (!member) return null;
+    Object.assign(member, data);
+    return this.memberRepository.save(member);
+  }
+
+  async delete(id: number): Promise<boolean> {
+    const member = await this.findOne(id);
+    if (!member) return false;
+    await this.memberRepository.softDelete(id);
+    return true;
+  }
+}
+
+--- backend/src/modules/member/member.controller.ts ---
+import { Request, Response } from "express";
+import { MemberService } from "./member.service";
+
+const memberService = new MemberService();
+
+export class MemberController {
+  async findAll(req: Request, res: Response): Promise<void> {
+    try {
+      const members = await memberService.findAll();
+      res.json(members);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching members", error });
+    }
+  }
+
+  async findOne(req: Request, res: Response): Promise<void> {
+    try {
+      const id = parseInt(req.params.id);
+      const member = await memberService.findOne(id);
+      if (!member) { res.status(404).json({ message: "Member not found" }); return; }
+      res.json(member);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching member", error });
+    }
+  }
+
+  async create(req: Request, res: Response): Promise<void> {
+    try {
+      const member = await memberService.create(req.body);
+      res.status(201).json(member);
+    } catch (error) {
+      res.status(500).json({ message: "Error creating member", error });
+    }
+  }
+
+  async update(req: Request, res: Response): Promise<void> {
+    try {
+      const id = parseInt(req.params.id);
+      const member = await memberService.update(id, req.body);
+      if (!member) { res.status(404).json({ message: "Member not found" }); return; }
+      res.json(member);
+    } catch (error) {
+      res.status(500).json({ message: "Error updating member", error });
+    }
+  }
+
+  async delete(req: Request, res: Response): Promise<void> {
+    try {
+      const id = parseInt(req.params.id);
+      const result = await memberService.delete(id);
+      if (!result) { res.status(404).json({ message: "Member not found" }); return; }
+      res.json({ message: "Member deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Error deleting member", error });
+    }
+  }
+}
+
+--- backend/src/modules/member/member.routes.ts ---
+import { Router } from "express";
+import { MemberController } from "./member.controller";
+import { validateDto } from "../../middlewares/validateDto.middleware";
+import { CreateMemberDto, UpdateMemberDto } from "./member.dto";
+
+const router = Router();
+const memberController = new MemberController();
+
+router.get("/", memberController.findAll);
+router.get("/:id", memberController.findOne);
+router.post("/", validateDto(CreateMemberDto), memberController.create);
+router.put("/:id", validateDto(UpdateMemberDto), memberController.update);
+router.delete("/:id", memberController.delete);
+
+export default router;
+
+--- backend/src/modules/loan/loan.dto.ts ---
+import { IsNotEmpty, IsOptional, IsInt, IsPositive, IsDateString, IsEnum } from "class-validator";
+import { LoanStatus } from "../../entities/Loan.entity";
+
+export class CreateLoanDto {
+  @IsNotEmpty() @IsDateString()
+  loanDate!: string;
+
+  @IsNotEmpty() @IsDateString()
+  dueDate!: string;
+
+  @IsNotEmpty() @IsInt() @IsPositive()
+  bookId!: number;
+
+  @IsNotEmpty() @IsInt() @IsPositive()
+  memberId!: number;
+}
+
+export class UpdateLoanDto {
+  @IsOptional() @IsDateString()
+  loanDate?: string;
+
+  @IsOptional() @IsDateString()
+  dueDate?: string;
+
+  @IsOptional() @IsDateString()
+  returnDate?: string;
+
+  @IsOptional() @IsEnum(LoanStatus)
+  status?: LoanStatus;
+
+  @IsOptional() @IsInt() @IsPositive()
+  bookId?: number;
+
+  @IsOptional() @IsInt() @IsPositive()
+  memberId?: number;
+}
+
+--- backend/src/modules/loan/loan.service.ts ---
+import { AppDataSource } from "../../config/db";
+import { Loan, LoanStatus } from "../../entities/Loan.entity";
+import { Book } from "../../entities/Book.entity";
+import { CreateLoanDto, UpdateLoanDto } from "./loan.dto";
+
+export class LoanService {
+  private loanRepository = AppDataSource.getRepository(Loan);
+  private bookRepository = AppDataSource.getRepository(Book);
+
+  async findAll(): Promise<Loan[]> {
+    return this.loanRepository.find({
+      relations: ["book", "member", "book.author", "member.membershipType"],
+    });
+  }
+
+  async findOne(id: number): Promise<Loan | null> {
+    return this.loanRepository.findOne({
+      where: { id },
+      relations: ["book", "member", "book.author", "member.membershipType"],
+    });
+  }
+
+  async create(data: CreateLoanDto): Promise<Loan> {
+    const book = await this.bookRepository.findOne({ where: { id: data.bookId } });
+    if (!book || book.copiesAvailable <= 0) {
+      throw new Error("No copies available");
+    }
+    book.copiesAvailable -= 1;
+    await this.bookRepository.save(book);
+
+    const loan = this.loanRepository.create({ ...data, status: LoanStatus.ACTIVE });
+    return this.loanRepository.save(loan);
+  }
+
+  async update(id: number, data: UpdateLoanDto): Promise<Loan | null> {
+    const loan = await this.findOne(id);
+    if (!loan) return null;
+    Object.assign(loan, data);
+    return this.loanRepository.save(loan);
+  }
+
+  async delete(id: number): Promise<boolean> {
+    const loan = await this.findOne(id);
+    if (!loan) return false;
+    await this.loanRepository.softDelete(id);
+    return true;
+  }
+
+  async returnBook(id: number): Promise<Loan | null> {
+    const loan = await this.findOne(id);
+    if (!loan) return null;
+
+    const book = await this.bookRepository.findOne({ where: { id: loan.bookId } });
+    if (book) {
+      book.copiesAvailable += 1;
+      await this.bookRepository.save(book);
+    }
+
+    loan.returnDate = new Date();
+    loan.status = LoanStatus.RETURNED;
+    return this.loanRepository.save(loan);
+  }
+}
+
+--- backend/src/modules/loan/loan.controller.ts ---
+import { Request, Response } from "express";
+import { LoanService } from "./loan.service";
+
+const loanService = new LoanService();
+
+export class LoanController {
+  async findAll(req: Request, res: Response): Promise<void> {
+    try {
+      const loans = await loanService.findAll();
+      res.json(loans);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching loans", error });
+    }
+  }
+
+  async findOne(req: Request, res: Response): Promise<void> {
+    try {
+      const id = parseInt(req.params.id);
+      const loan = await loanService.findOne(id);
+      if (!loan) { res.status(404).json({ message: "Loan not found" }); return; }
+      res.json(loan);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching loan", error });
+    }
+  }
+
+  async create(req: Request, res: Response): Promise<void> {
+    try {
+      const loan = await loanService.create(req.body);
+      res.status(201).json(loan);
+    } catch (error: any) {
+      if (error.message === "No copies available") {
+        res.status(400).json({ message: error.message });
+        return;
+      }
+      res.status(500).json({ message: "Error creating loan", error });
+    }
+  }
+
+  async update(req: Request, res: Response): Promise<void> {
+    try {
+      const id = parseInt(req.params.id);
+      const loan = await loanService.update(id, req.body);
+      if (!loan) { res.status(404).json({ message: "Loan not found" }); return; }
+      res.json(loan);
+    } catch (error) {
+      res.status(500).json({ message: "Error updating loan", error });
+    }
+  }
+
+  async delete(req: Request, res: Response): Promise<void> {
+    try {
+      const id = parseInt(req.params.id);
+      const result = await loanService.delete(id);
+      if (!result) { res.status(404).json({ message: "Loan not found" }); return; }
+      res.json({ message: "Loan deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Error deleting loan", error });
+    }
+  }
+
+  async returnBook(req: Request, res: Response): Promise<void> {
+    try {
+      const id = parseInt(req.params.id);
+      const loan = await loanService.returnBook(id);
+      if (!loan) { res.status(404).json({ message: "Loan not found" }); return; }
+      res.json(loan);
+    } catch (error) {
+      res.status(500).json({ message: "Error returning book", error });
+    }
+  }
+}
+
+--- backend/src/modules/loan/loan.routes.ts ---
+import { Router } from "express";
+import { LoanController } from "./loan.controller";
+import { validateDto } from "../../middlewares/validateDto.middleware";
+import { CreateLoanDto, UpdateLoanDto } from "./loan.dto";
+
+const router = Router();
+const loanController = new LoanController();
+
+router.get("/", loanController.findAll);
+router.get("/:id", loanController.findOne);
+router.post("/", validateDto(CreateLoanDto), loanController.create);
+router.put("/:id", validateDto(UpdateLoanDto), loanController.update);
+router.delete("/:id", loanController.delete);
+router.patch("/:id/return", loanController.returnBook);
+
+export default router;
+
+================================================================================
+FRONTEND - CONFIGURACIÓN
+================================================================================
+
+--- frontend/package.json ---
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@fontsource/roboto": "^5.2.5",
+    "@mui/icons-material": "^7.0.2",
+    "@mui/material": "^7.0.2",
+    "axios": "^1.9.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.6.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "@vitejs/plugin-react": "^4.4.1",
+    "typescript": "~5.7.2",
+    "vite": "^6.3.0"
+  }
+}
+
+--- frontend/vite.config.ts ---
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+})
+
+--- frontend/index.html ---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Library Management System</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
+================================================================================
+FRONTEND - SRC
+================================================================================
+
+--- frontend/src/main.tsx ---
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import '@fontsource/roboto/300.css';
+import '@fontsource/roboto/400.css';
+import '@fontsource/roboto/500.css';
+import '@fontsource/roboto/700.css';
+import './index.css'
+import App from './App.tsx'
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
+
+--- frontend/src/App.tsx ---
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+import AppLayout from './components/Layout/AppLayout';
+import HomePage from './pages/Home/HomePage';
+import AuthorsPage from './pages/Authors/AuthorsPage';
+import AuthorCreatePage from './pages/Authors/AuthorCreatePage';
+import AuthorEditPage from './pages/Authors/AuthorEditPage';
+import BooksPage from './pages/Books/BooksPage';
+import BookCreatePage from './pages/Books/BookCreatePage';
+import BookEditPage from './pages/Books/BookEditPage';
+import MembershipTypesPage from './pages/MembershipTypes/MembershipTypesPage';
+import MembershipTypeCreatePage from './pages/MembershipTypes/MembershipTypeCreatePage';
+import MembershipTypeEditPage from './pages/MembershipTypes/MembershipTypeEditPage';
+import MembersPage from './pages/Members/MembersPage';
+import MemberCreatePage from './pages/Members/MemberCreatePage';
+import MemberEditPage from './pages/Members/MemberEditPage';
+import LoansPage from './pages/Loans/LoansPage';
+import LoanCreatePage from './pages/Loans/LoanCreatePage';
+import LoanEditPage from './pages/Loans/LoanEditPage';
+import './App.css';
+
+const theme = createTheme({
+  palette: {
+    primary: { main: '#1976d2' },
+    secondary: { main: '#dc004e' },
+  },
+});
+
+function App() {
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Router>
+        <AppLayout>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/authors" element={<AuthorsPage />} />
+            <Route path="/authors/create" element={<AuthorCreatePage />} />
+            <Route path="/authors/edit/:id" element={<AuthorEditPage />} />
+            <Route path="/books" element={<BooksPage />} />
+            <Route path="/books/create" element={<BookCreatePage />} />
+            <Route path="/books/edit/:id" element={<BookEditPage />} />
+            <Route path="/membership-types" element={<MembershipTypesPage />} />
+            <Route path="/membership-types/create" element={<MembershipTypeCreatePage />} />
+            <Route path="/membership-types/edit/:id" element={<MembershipTypeEditPage />} />
+            <Route path="/members" element={<MembersPage />} />
+            <Route path="/members/create" element={<MemberCreatePage />} />
+            <Route path="/members/edit/:id" element={<MemberEditPage />} />
+            <Route path="/loans" element={<LoansPage />} />
+            <Route path="/loans/create" element={<LoanCreatePage />} />
+            <Route path="/loans/edit/:id" element={<LoanEditPage />} />
+          </Routes>
+        </AppLayout>
+      </Router>
+    </ThemeProvider>
+  );
+}
+
+export default App;
+
+--- frontend/src/types/index.ts ---
+export interface Author {
+  id: number;
+  firstName: string;
+  lastName: string;
+  biography?: string;
+  createdAt: string;
+  updatedAt: string;
+  books?: Book[];
+}
+
+export interface Book {
+  id: number;
+  title: string;
+  isbn: string;
+  publishedYear: number;
+  genre: string;
+  copiesAvailable: number;
+  authorId: number;
+  author?: Author;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MembershipType {
+  id: number;
+  name: string;
+  description?: string;
+  maxBooks: number;
+  loanDurationDays: number;
+  monthlyFee: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Member {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  address?: string;
+  membershipStartDate: string;
+  membershipEndDate?: string;
+  membershipTypeId: number;
+  membershipType?: MembershipType;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export enum LoanStatus {
+  ACTIVE = 'active',
+  RETURNED = 'returned',
+  OVERDUE = 'overdue',
+}
+
+export interface Loan {
+  id: number;
+  loanDate: string;
+  dueDate: string;
+  returnDate?: string;
+  status: LoanStatus;
+  bookId: number;
+  book?: Book;
+  memberId: number;
+  member?: Member;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// DTOs
+export interface CreateAuthorDto { firstName: string; lastName: string; biography?: string; }
+export interface UpdateAuthorDto { firstName?: string; lastName?: string; biography?: string; }
+export interface CreateBookDto { title: string; isbn: string; publishedYear: number; genre: string; copiesAvailable?: number; authorId: number; }
+export interface UpdateBookDto { title?: string; isbn?: string; publishedYear?: number; genre?: string; copiesAvailable?: number; authorId?: number; }
+export interface CreateMembershipTypeDto { name: string; description?: string; maxBooks: number; loanDurationDays: number; monthlyFee?: number; }
+export interface UpdateMembershipTypeDto { name?: string; description?: string; maxBooks?: number; loanDurationDays?: number; monthlyFee?: number; }
+export interface CreateMemberDto { firstName: string; lastName: string; email: string; phone?: string; address?: string; membershipStartDate: string; membershipEndDate?: string; membershipTypeId: number; }
+export interface UpdateMemberDto { firstName?: string; lastName?: string; email?: string; phone?: string; address?: string; membershipStartDate?: string; membershipEndDate?: string; membershipTypeId?: number; }
+export interface CreateLoanDto { loanDate: string; dueDate: string; bookId: number; memberId: number; }
+export interface UpdateLoanDto { loanDate?: string; dueDate?: string; returnDate?: string; status?: LoanStatus; bookId?: number; memberId?: number; }
+
+--- frontend/src/api/axiosConfig.ts ---
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: 'http://localhost:3000/api',
+  headers: { 'Content-Type': 'application/json' },
+});
+
+export default api;
+
+--- frontend/src/api/authors.ts ---
+import api from './axiosConfig';
+import { Author, CreateAuthorDto, UpdateAuthorDto } from '../types';
+
+export const getAuthors = async (): Promise<Author[]> => {
+  const response = await api.get('/authors');
+  return response.data;
+};
+
+export const getAuthor = async (id: number): Promise<Author> => {
+  const response = await api.get(`/authors/${id}`);
+  return response.data;
+};
+
+export const createAuthor = async (data: CreateAuthorDto): Promise<Author> => {
+  const response = await api.post('/authors', data);
+  return response.data;
+};
+
+export const updateAuthor = async (id: number, data: UpdateAuthorDto): Promise<Author> => {
+  const response = await api.put(`/authors/${id}`, data);
+  return response.data;
+};
+
+export const deleteAuthor = async (id: number): Promise<void> => {
+  await api.delete(`/authors/${id}`);
+};
+
+--- frontend/src/api/books.ts ---
+import api from './axiosConfig';
+import { Book, CreateBookDto, UpdateBookDto } from '../types';
+
+export const getBooks = async (): Promise<Book[]> => (await api.get('/books')).data;
+export const getBook = async (id: number): Promise<Book> => (await api.get(`/books/${id}`)).data;
+export const createBook = async (data: CreateBookDto): Promise<Book> => (await api.post('/books', data)).data;
+export const updateBook = async (id: number, data: UpdateBookDto): Promise<Book> => (await api.put(`/books/${id}`, data)).data;
+export const deleteBook = async (id: number): Promise<void> => { await api.delete(`/books/${id}`); };
+
+--- frontend/src/api/membershipTypes.ts ---
+import api from './axiosConfig';
+import { MembershipType, CreateMembershipTypeDto, UpdateMembershipTypeDto } from '../types';
+
+export const getMembershipTypes = async (): Promise<MembershipType[]> => (await api.get('/membership-types')).data;
+export const getMembershipType = async (id: number): Promise<MembershipType> => (await api.get(`/membership-types/${id}`)).data;
+export const createMembershipType = async (data: CreateMembershipTypeDto): Promise<MembershipType> => (await api.post('/membership-types', data)).data;
+export const updateMembershipType = async (id: number, data: UpdateMembershipTypeDto): Promise<MembershipType> => (await api.put(`/membership-types/${id}`, data)).data;
+export const deleteMembershipType = async (id: number): Promise<void> => { await api.delete(`/membership-types/${id}`); };
+
+--- frontend/src/api/members.ts ---
+import api from './axiosConfig';
+import { Member, CreateMemberDto, UpdateMemberDto } from '../types';
+
+export const getMembers = async (): Promise<Member[]> => (await api.get('/members')).data;
+export const getMember = async (id: number): Promise<Member> => (await api.get(`/members/${id}`)).data;
+export const createMember = async (data: CreateMemberDto): Promise<Member> => (await api.post('/members', data)).data;
+export const updateMember = async (id: number, data: UpdateMemberDto): Promise<Member> => (await api.put(`/members/${id}`, data)).data;
+export const deleteMember = async (id: number): Promise<void> => { await api.delete(`/members/${id}`); };
+
+--- frontend/src/api/loans.ts ---
+import api from './axiosConfig';
+import { Loan, CreateLoanDto, UpdateLoanDto } from '../types';
+
+export const getLoans = async (): Promise<Loan[]> => (await api.get('/loans')).data;
+export const getLoan = async (id: number): Promise<Loan> => (await api.get(`/loans/${id}`)).data;
+export const createLoan = async (data: CreateLoanDto): Promise<Loan> => (await api.post('/loans', data)).data;
+export const updateLoan = async (id: number, data: UpdateLoanDto): Promise<Loan> => (await api.put(`/loans/${id}`, data)).data;
+export const deleteLoan = async (id: number): Promise<void> => { await api.delete(`/loans/${id}`); };
+export const returnBook = async (id: number): Promise<Loan> => (await api.patch(`/loans/${id}/return`)).data;
+
+--- frontend/src/hooks/useConfirmDialog.ts ---
+import { useState, useCallback } from 'react';
+
+export const useConfirmDialog = (onConfirm: (id: number) => void) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<number | null>(null);
+
+  const openDialog = useCallback((id: number) => {
+    setItemToDelete(id);
+    setIsOpen(true);
+  }, []);
+
+  const closeDialog = useCallback(() => {
+    setIsOpen(false);
+    setItemToDelete(null);
+  }, []);
+
+  const confirmDelete = useCallback(() => {
+    if (itemToDelete !== null) onConfirm(itemToDelete);
+    closeDialog();
+  }, [itemToDelete, onConfirm, closeDialog]);
+
+  return { isOpen, itemToDelete, openDialog, closeDialog, confirmDelete };
+};
+
+--- frontend/src/components/common/ConfirmDialog.tsx ---
+import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from '@mui/material';
+
+interface ConfirmDialogProps {
+  open: boolean;
+  title: string;
+  message: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+const ConfirmDialog: React.FC<ConfirmDialogProps> = ({ open, title, message, onConfirm, onCancel }) => {
+  return (
+    <Dialog open={open} onClose={onCancel}>
+      <DialogTitle>{title}</DialogTitle>
+      <DialogContent>
+        <DialogContentText>{message}</DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onCancel} color="primary">Cancelar</Button>
+        <Button onClick={onConfirm} color="error" variant="contained">Eliminar</Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+export default ConfirmDialog;
+
+--- frontend/src/components/Layout/AppLayout.tsx ---
+import { Box } from '@mui/material';
+import Navbar from './Navbar';
+
+const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <Navbar />
+      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>{children}</Box>
+    </Box>
+  );
+};
+
+export default AppLayout;
+
+--- frontend/src/components/Layout/Navbar.tsx ---
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AppBar, Toolbar, Typography, Button, IconButton, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Box, useMediaQuery, useTheme } from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import HomeIcon from '@mui/icons-material/Home';
+import PersonIcon from '@mui/icons-material/Person';
+import BookIcon from '@mui/icons-material/Book';
+import CardMembershipIcon from '@mui/icons-material/CardMembership';
+import PeopleIcon from '@mui/icons-material/People';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
+
+const menuItems = [
+  { text: 'Inicio', icon: <HomeIcon />, path: '/' },
+  { text: 'Autores', icon: <PersonIcon />, path: '/authors' },
+  { text: 'Libros', icon: <BookIcon />, path: '/books' },
+  { text: 'Tipos de Membresía', icon: <CardMembershipIcon />, path: '/membership-types' },
+  { text: 'Miembros', icon: <PeopleIcon />, path: '/members' },
+  { text: 'Préstamos', icon: <SwapHorizIcon />, path: '/loans' },
+];
+
+const Navbar: React.FC = () => {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  const handleNavigation = (path: string) => { navigate(path); setDrawerOpen(false); };
+
+  return (
+    <>
+      <AppBar position="static">
+        <Toolbar>
+          {isMobile && (
+            <IconButton size="large" edge="start" color="inherit" onClick={() => setDrawerOpen(true)}><MenuIcon /></IconButton>
+          )}
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>Sistema de Biblioteca</Typography>
+          {!isMobile && (
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              {menuItems.map((item) => (
+                <Button key={item.text} color="inherit" onClick={() => handleNavigation(item.path)} startIcon={item.icon}>{item.text}</Button>
+              ))}
+            </Box>
+          )}
+        </Toolbar>
+      </AppBar>
+      <Drawer anchor="left" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+        <Box sx={{ width: 250 }}>
+          <List>
+            {menuItems.map((item) => (
+              <ListItem key={item.text} disablePadding>
+                <ListItemButton onClick={() => handleNavigation(item.path)}>
+                  <ListItemIcon>{item.icon}</ListItemIcon>
+                  <ListItemText primary={item.text} />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+        </Box>
+      </Drawer>
+    </>
+  );
+};
+
+export default Navbar;
+
+================================================================================
+FRONTEND - PAGES (Resumen de estructura)
+================================================================================
+
+Las páginas siguen un patrón similar:
+- *Page.tsx: Lista de elementos con tabla y botones de acción
+- *CreatePage.tsx: Formulario para crear nuevo elemento
+- *EditPage.tsx: Formulario para editar elemento existente
+
+Ejemplo de AuthorsPage.tsx:
+- Usa useState y useEffect para cargar datos
+- Renderiza AuthorList component
+- Usa useConfirmDialog hook para confirmación de eliminación
+
+Ejemplo de AuthorCreatePage.tsx:
+- Renderiza AuthorForm component
+- Usa useNavigate para redirección después de crear
+
+Ejemplo de AuthorEditPage.tsx:
+- Usa useParams para obtener ID
+- Carga datos del autor específico
+- Renderiza AuthorForm con datos existentes
+
+================================================================================
+FIN DEL ARCHIVO
+================================================================================

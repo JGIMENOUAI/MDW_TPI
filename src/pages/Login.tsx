@@ -70,8 +70,8 @@ const Login = () => {
             <FormLabel>Email</FormLabel>
             <Input
               type="email"
+              placeholder="correo@ejemplo.com"              
               {...register("email")}
-              placeholder="correo@ejemplo.com"
             />
             {errors.email && (
               <FormErrorMessage>{errors.email.message}</FormErrorMessage>
@@ -82,8 +82,9 @@ const Login = () => {
             <FormLabel>Contraseña</FormLabel>
             <Input
               type="password"
-              {...register("password")}
               placeholder="••••••••"
+              autoComplete="new-password"
+              {...register("password")}
             />
             {errors.password && (
               <FormErrorMessage>{errors.password.message}</FormErrorMessage>
