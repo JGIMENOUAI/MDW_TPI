@@ -1,15 +1,7 @@
-import {
-  createSlice,
-  createAsyncThunk,
-  type PayloadAction,
-} from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import type { PayloadAction } from "@reduxjs/toolkit";
 import { authService } from "../../services/authService";
-
-interface User {
-  uid: string;
-  email: string;
-  nombre?: string;
-}
+import type { User } from "../../services/authService";
 
 interface AuthState {
   user: User | null;
@@ -36,19 +28,24 @@ export const loginUser = createAsyncThunk(
   ) => {
     try {
       const response = await authService.login(email, password);
+
+      // Mapear uid a id para consistencia
       const userData: User = {
+        id: response.uid,
         uid: response.uid,
         email: response.email,
+        nombre: response.nombre,
+        rol: response.user?.rol,
       };
 
-      authService.setToken(response.token); // ← Cambiado de idToken a token
+      authService.setToken(response.token);
       if (response.refreshToken) {
-        authService.setRefreshToken(response.refreshToken); // ← Agregar esto
+        authService.setRefreshToken(response.refreshToken);
       }
       authService.setUser(userData);
-      authService.startAutoRefresh(); // ← Agregar esto
+      authService.startAutoRefresh();
 
-      return { user: userData, token: response.token }; // ← Cambiado de idToken a token
+      return { user: userData, token: response.token };
     } catch (error: unknown) {
       const err = error as { response?: { data?: { mensaje?: string } } };
       return rejectWithValue(
@@ -70,20 +67,23 @@ export const registerUser = createAsyncThunk(
   ) => {
     try {
       const response = await authService.register({ email, password, nombre });
+
       const userData: User = {
+        id: response.uid,
         uid: response.uid,
         email: response.email,
         nombre: response.nombre || nombre,
+        rol: response.user?.rol,
       };
 
-      authService.setToken(response.token); // ← Cambiado de idToken a token
+      authService.setToken(response.token);
       if (response.refreshToken) {
-        authService.setRefreshToken(response.refreshToken); // ← Agregar esto
+        authService.setRefreshToken(response.refreshToken);
       }
       authService.setUser(userData);
-      authService.startAutoRefresh(); // ← Agregar esto
+      authService.startAutoRefresh();
 
-      return { user: userData, token: response.token }; // ← Cambiado de idToken a token
+      return { user: userData, token: response.token };
     } catch (error: unknown) {
       const err = error as { response?: { data?: { mensaje?: string } } };
       return rejectWithValue(

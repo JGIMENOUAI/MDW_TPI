@@ -12,9 +12,11 @@ export interface RegisterData {
 }
 
 export interface User {
-  id: string;
-  nombre: string;
+  id: string;       // Usa 'id' como alias de 'uid'
+  uid?: string;     // Opcional para compatibilidad
+  nombre?: string;  // Opcional porque no siempre viene
   email: string;
+  rol?: string;
 }
 
 export interface AuthResponse {
