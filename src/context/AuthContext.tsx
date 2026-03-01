@@ -1,10 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { authService } from "../services/authService";
-
-interface User {
-  uid: string;
-  email: string;
-}
+import type { User } from "../services/authService";
 
 interface AuthContextType {
   user: User | null;
@@ -21,25 +17,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Verificar si hay un usuario guardado en localStorage
+    // Verificar si hay un usuario guardado en sessionStorage
     const savedUser = authService.getUser();
     const token = authService.getToken();
 
     if (savedUser && token) {
       setUser(savedUser);
+      authService.startAutoRefresh(); // ← Iniciar refresh si ya hay sesión
     }
     setLoading(false);
   }, []);
 
   const login = async (email: string, password: string) => {
     const response = await authService.login(email, password);
-    const userData = {
+    const userData: User = {
+      id: response.uid,
       uid: response.uid,
       email: response.email,
+      nombre: response.nombre,
+      rol: response.user?.rol,
     };
 
-    authService.setToken(response.idToken);
+    authService.setToken(response.token);
+    if (response.refreshToken) {
+      authService.setRefreshToken(response.refreshToken);
+    }
     authService.setUser(userData);
+    authService.startAutoRefresh();
     setUser(userData);
   };
 
